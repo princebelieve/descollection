@@ -1,0 +1,1 @@
+export default function CartIcon(){return <svg className="cart-svg" viewBox="0 0 32 32" aria-hidden="true"><path d="M3 5h3l3.5 16h15l4-12H8"/><path d="M11 25.5h.1M23 25.5h.1" strokeWidth="4" strokeLinecap="round"/></svg>}

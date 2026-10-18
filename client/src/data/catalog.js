@@ -1,0 +1,48 @@
+export const API = import.meta.env.VITE_API_URL || (['localhost','127.0.0.1'].includes(location.hostname)?'http://localhost:4000':'');
+const ASSET = '/assets/';
+const prices = {
+  'Jhalak 24K Gold Collagen Body Lotion': 20,
+  'Effimax Q10 Papaya Facial Cream': 10,
+  'Parley Goldie Beauty Lotion': 15,
+  'My Little Miracle Baby Oil': 5,
+  'Carrot Magic Face & Body Milk': 20,
+  'Juli Gold Extra Whitening Lotion': 20,
+  'Effimax Q10 Clarifying Lotion': 8.99,
+  'Effimax Q10 Concentrated Clarifying': 12,
+  'Juli Gold Beauty Box Set': 70,
+  'Veet Gold Turmeric Body Oil': 20,
+  'Jhalak Vitamin C Face Cream Set': 12,
+  '4Ever Glow Whitening Soap Set': 15,
+  'Dr Rashel Charcoal Black Soap': 8,
+  'Veet Gold Transparent Soap': 10,
+  'Veet Gold Collagen Body Oil': 20,
+  'Clear & Smooth White Moon Gel': 5,
+  'Golden Face Cream with Vitamin E': 20,
+};
+
+const starterItems = [
+  ['Jhalak 24K Gold Collagen Body Lotion','Body Lotions','jhalak-24k-gold-collagen-body-lotion.jpeg'],
+  ['Effimax Q10 Papaya Facial Cream','Face Cream','effimax-q10-papaya-facial-cream.jpeg'],
+  ['Jhalak 24K Gold Collagen Face Wash','Cleanser','jhalak-24k-gold-collagen-face-wash.jpeg'],
+  ['Parley Goldie Beauty Lotion','Body Lotions','parley-goldie-beauty-lotion.jpeg'],
+  ['My Little Miracle Baby Oil','Oil','my-little-miracle-baby-oil.jpeg'],
+  ['Carrot Magic Face & Body Milk','Body Lotions','carrot-magic-face-body-milk.jpeg'],
+  ['Juli Gold Extra Whitening Lotion','Body Lotions','juli-gold-extra-whitening-lotion.jpeg'],
+  ['Effimax Q10 Clarifying Lotion','Toner','effimax-q10-clarifying-lotion.jpeg'],
+  ['Effimax Q10 Concentrated Clarifying','Serum','effimax-q10-concentrated-clarifying.jpeg'],
+  ['Juli Gold Beauty Box Set','Set','juli-gold-beauty-box-set.jpeg'],
+  ['Duchess Glow Vitamin C Shower Gel','Body Wash','duchess-glow-vitamin-c-shower-gel.jpeg'],
+  ['Veet Gold Turmeric Body Oil','Oil','veet-gold-turmeric-body-oil.jpeg'],
+  ['Jhalak Vitamin C Face Cream Set','Set','jhalak-vitamin-c-face-cream-set.jpeg'],
+  ['4Ever Glow Whitening Soap Set','Soap','4ever-glow-whitening-soap-set.jpeg'],
+  ['Dr Rashel Charcoal Black Soap','Soap','dr-rashel-charcoal-black-soap.jpeg'],
+  ['Veet Gold Transparent Soap','Soap','veet-gold-transparent-soap.jpeg'],
+  ['Veet Gold Collagen Body Oil','Oil','veet-gold-collagen-body-oil.jpeg'],
+  ['Veet Gold Turmeric Soap','Soap','veet-gold-turmeric-soap.jpeg'],
+  ['Clear & Smooth White Moon Gel','Creams','clear-smooth-white-moon-gel.jpeg'],
+  ['Golden Face Cream with Vitamin E','Face Cream','golden-face-cream-vitamin-e.jpeg'],
+].map(([name,category,file],i)=>({id:`demo-${i}`,name,category,image:`${ASSET}${file}`,description:'Discover this beauty essential from the Des-Collection range.',price:prices[name]??null}));
+export const categories =['Brands','Body Lotions','Body Wash','Serum','Oil','Face Cream','Soap','Creams','Scrub','Set','Toner','Cleanser','Fragrances','Hair Care','Cosmetics','Shoes','Bags','Earrings','Hair Ties','Female Turkey Gowns','More'];
+export const menuItems =[['Home','/'],['About us','/about'],['Shop','/shop'],['Blog','/blog'],['Brands','/brands'],['FAQ','/faq']];
+export const fallbackBrands =['A.M Glow','Abebi White','Active White','Advance Korean','Advance Purity','Aguaje','Al Affia','Alisha','Amazon','Amlactin','Amos White','Aneeza','Anian','Asantee','BabySecret','Carrot Magic','Duchess Glow','Effimax','Jhalak','Juli Gold','Parley Goldie','Veet Gold'];
+export const starter = starterItems;

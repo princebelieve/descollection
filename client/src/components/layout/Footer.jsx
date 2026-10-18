@@ -1,0 +1,3 @@
+import { Link } from 'react-router-dom';
+
+export default function Footer(){return <footer className="footer"><div className="footer-links"><Link to="/about">About us</Link><Link to="/brands">Brands</Link><Link to="/faq">FAQ</Link><Link to="/contact">Contact us</Link><Link to="/admin">Admin</Link></div><p>Welcome to Des-Collection | Style, Quality & Elegance</p><p>312 Moston Lane, Manchester M40 9WB · <a href="tel:+447440248472">+44 7440 248472</a></p><p><a href="mailto:admin@descollection.co.uk">admin@descollection.co.uk</a> · descollection.co.uk</p><small>© {new Date().getFullYear()} Des-Collection</small></footer>}

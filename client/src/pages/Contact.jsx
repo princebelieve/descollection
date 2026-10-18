@@ -1,0 +1,2 @@
+
+export default function Contact(){return <main className="page text-page"><p className="kicker">WE'RE HERE TO HELP</p><h1>Contact Des-Collection</h1><p>Questions about a product or your order? We’d love to hear from you.</p><p><b>Phone:</b> <a href="tel:+447440248472">+44 7440 248472</a></p><p><b>Address:</b> 312 Moston Lane, Manchester M40 9WB</p><p><b>Email:</b> <a href="mailto:admin@descollection.co.uk">admin@descollection.co.uk</a></p><p><b>Website:</b> descollection.co.uk</p></main>}

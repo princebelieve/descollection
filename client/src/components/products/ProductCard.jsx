@@ -1,0 +1,5 @@
+import { Link } from 'react-router-dom';
+import { useStore } from '../../context/StoreContext';
+import { imageOf, money, productId } from '../../utils/products';
+
+export default function ProductCard({product}){const {add,wishlist,toggleWish}=useStore();const id=productId(product),saved=wishlist.some(x=>String(x.id)===id);return <article className="product-card"><Link className="product-photo" to={`/product/${id}`}><img src={imageOf(product)} alt={product.name}/></Link><button className={`heart ${saved?'saved':''}`} onClick={()=>toggleWish(product)} aria-label="Wishlist">{saved?'♥':'♡'}</button><div className="product-info"><Link to={`/product/${id}`} className="product-name">{product.name}</Link><Link className="product-cat" to={`/category/${encodeURIComponent(product.category||'Beauty')}`}>{product.category||'Beauty'}</Link><strong className="product-price">{Number(product.price)>0?money(product.price):'Price TBC'}</strong><button className="add-cart" onClick={()=>add(product)}>ADD TO CART</button></div></article>}

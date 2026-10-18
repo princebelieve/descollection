@@ -1,0 +1,7 @@
+import { useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { fallbackBrands } from '../data/catalog';
+import { useStore } from '../context/StoreContext';
+import ProductGrid from '../components/products/ProductGrid';
+
+export default function Brands(){const [term,setTerm]=useState('');const brands=fallbackBrands.filter(x=>x.toLowerCase().includes(term.toLowerCase())).sort((a,b)=>a.localeCompare(b));const letters=['#',...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'];return <main className="page directory"><p className="kicker">DES-COLLECTION</p><h1>Brand directory</h1><p className="intro">Find your favourites and discover something new from our collection of beauty, skincare and lifestyle brands.</p><label className="directory-search"><span>⌕</span><input placeholder="Search all brands" value={term} onChange={e=>setTerm(e.target.value)}/>{term&&<button onClick={()=>setTerm('')}>CLEAR</button>}</label><p className="brand-count">{brands.length} brands</p><nav className="alphabet">{letters.map(l=><a key={l} href={`#letter-${l}`}>{l}</a>)}</nav><div className="brand-list">{Object.entries(brands.reduce((acc,b)=>{const letter=/^[0-9]/.test(b)?'#':b[0].toUpperCase();(acc[letter]??=[]).push(b);return acc},{})).map(([letter,names])=><section id={`letter-${letter}`} key={letter}><strong>{letter}</strong><div>{names.map(n=><Link key={n} to={`/brands/${encodeURIComponent(n)}`}>{n.toUpperCase()}</Link>)}</div></section>)}</div></main>}
