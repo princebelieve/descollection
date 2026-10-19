@@ -1,5 +1,6 @@
 // server/src/controllers/product.controller.js
 const Product = require("../models/Product");
+const Order = require("../models/Order");
 const { uploadToR2 } = require("../config/r2");
 const starterCatalog = require("../seed/desCollectionCatalog");
 
@@ -38,6 +39,47 @@ async function getProducts(req, res) {
   }
 }
 
+async function getBestsellers(req, res) {
+  try {
+    const requestedDays = Number(req.query.days) || 7;
+    const days = Math.min(90, Math.max(1, requestedDays));
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const orders = await Order.find({ status: "paid", createdAt: { $gte: since } }).select("items productId");
+    const quantities = new Map();
+
+    for (const order of orders) {
+      let items = [];
+      try {
+        items = order.items ? JSON.parse(order.items) : [];
+      } catch {
+        items = [];
+      }
+
+      if (Array.isArray(items)) {
+        for (const item of items) {
+          const id = String(item.id || "");
+          const quantity = Math.max(1, Math.floor(Number(item.qty) || 1));
+          if (/^[a-f\d]{24}$/i.test(id)) quantities.set(id, (quantities.get(id) || 0) + quantity);
+        }
+      }
+
+      const legacyId = String(order.productId || "");
+      if (/^[a-f\d]{24}$/i.test(legacyId)) quantities.set(legacyId, (quantities.get(legacyId) || 0) + 1);
+    }
+
+    if (!quantities.size) return res.json({ days, products: [] });
+
+    const products = await Product.find({ _id: { $in: [...quantities.keys()] } });
+    products.sort((a, b) => (quantities.get(String(b._id)) || 0) - (quantities.get(String(a._id)) || 0));
+    res.json({
+      days,
+      products: products.map((product) => ({ ...product.toObject(), soldCount: quantities.get(String(product._id)) || 0 })),
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
 async function getProduct(req, res) {
   try {
     const product = await Product.findById(req.params.id);
@@ -54,7 +96,7 @@ async function getProduct(req, res) {
 
 async function createProduct(req, res) {
   try {
-    const { name, price, category, description } = req.body;
+    const { name, price, originalPrice, category, description } = req.body;
 
     let image = "";
 
@@ -65,6 +107,7 @@ async function createProduct(req, res) {
     const product = await Product.create({
       name,
       price,
+      originalPrice: Number(originalPrice) > Number(price) ? Number(originalPrice) : null,
       image,
       category,
       description,
@@ -86,6 +129,7 @@ async function updateProduct(req, res) {
 
     product.name = req.body.name;
     product.price = req.body.price;
+    product.originalPrice = Number(req.body.originalPrice) > Number(req.body.price) ? Number(req.body.originalPrice) : null;
     product.category = req.body.category ?? product.category;
     product.description = req.body.description ?? product.description;
 
@@ -118,6 +162,7 @@ async function deleteProduct(req, res) {
 module.exports = {
   importStarterProducts,
   getProducts,
+  getBestsellers,
   getProduct,
   createProduct,
   updateProduct,

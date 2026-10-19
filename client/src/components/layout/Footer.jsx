@@ -1,3 +1,45 @@
 import { Link } from 'react-router-dom';
 
-export default function Footer(){return <footer className="footer"><div className="footer-links"><Link to="/about">About us</Link><Link to="/brands">Brands</Link><Link to="/faq">FAQ</Link><Link to="/contact">Contact us</Link><Link to="/admin">Admin</Link></div><p>Welcome to Des-Collection | Style, Quality & Elegance</p><p>312 Moston Lane, Manchester M40 9WB · <a href="tel:+447440248472">+44 7440 248472</a></p><p><a href="mailto:admin@descollection.co.uk">admin@descollection.co.uk</a> · descollection.co.uk</p><small>© {new Date().getFullYear()} Des-Collection</small></footer>}
+const footerGroups = [
+  { title: 'Skincare', items: ['Cleanser', 'Creams', 'Face Cream', 'Face Wash', 'Serum', 'Toner'] },
+  { title: 'Body & Hair', items: ['Body Lotions', 'Body Wash', 'Hair Care', 'Oil', 'Scrub', 'Soap'] },
+  { title: 'Makeup & Fragrance', items: ['Cosmetics', 'Fragrances', 'Set'] },
+  { title: 'Jewellery & More', items: ['Bags', 'Earrings', 'Shoes'] },
+];
+
+export default function Footer() {
+  return (
+    <footer className="store-footer">
+      <div className="store-footer-grid">
+        <section className="store-footer-brand">
+          <Link to="/" aria-label="Des-Collection home"><img src="/assets/des-collection-logo.png" alt="Des-Collection" /></Link>
+          <address>
+            <a href="tel:+447440248472">Call: +44 7440 248472</a>
+            <a href="mailto:admin@descollection.co.uk">Email: admin@descollection.co.uk</a>
+            <span>312 Moston Lane, Manchester M40 9WB</span>
+          </address>
+          <h3>Information</h3>
+          <nav className="store-footer-links">
+            <Link to="/about">About us</Link>
+            <Link to="/faq">Frequently asked questions</Link>
+            <Link to="/contact">Contact us</Link>
+            <Link to="/brands">Brands</Link>
+          </nav>
+        </section>
+
+        {footerGroups.map((group) => (
+          <details className="store-footer-group" key={group.title}>
+            <summary>{group.title}</summary>
+            <nav>
+              {group.items.map((item) => <Link key={item} to={`/category/${encodeURIComponent(item)}`}>{item}</Link>)}
+            </nav>
+          </details>
+        ))}
+      </div>
+      <div className="store-footer-bottom">
+        <span>© {new Date().getFullYear()} Des-Collection</span>
+        <span>Style, Quality &amp; Elegance</span>
+      </div>
+    </footer>
+  );
+}

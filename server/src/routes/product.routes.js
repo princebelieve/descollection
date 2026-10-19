@@ -4,6 +4,7 @@ const router = express.Router();
 const upload = require("../middleware/upload");
 const {
   getProducts,
+  getBestsellers,
   getProduct,
   createProduct,
   updateProduct,
@@ -14,6 +15,7 @@ const {
 const { protect, adminOnly } = require("../middleware/auth");
 
 router.get("/", getProducts);
+router.get("/bestsellers", getBestsellers);
 router.post("/import-starters", protect, adminOnly, importStarterProducts);
 router.get("/:id", getProduct);
 
