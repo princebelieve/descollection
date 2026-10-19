@@ -12,7 +12,7 @@ export default function Footer() {
     <footer className="store-footer">
       <div className="store-footer-grid">
         <section className="store-footer-brand">
-          <Link to="/" aria-label="Des-Collection home"><img src="/assets/des-collection-logo.png" alt="Des-Collection" /></Link>
+          <Link to="/" aria-label="Des-Collection home"><img src="/logo.png" alt="Des-Collection" /></Link>
           <address>
             <a href="tel:+447440248472">Call: +44 7440 248472</a>
             <a href="mailto:admin@descollection.co.uk">Email: admin@descollection.co.uk</a>
