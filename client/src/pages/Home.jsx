@@ -9,34 +9,34 @@ import { imageOf, money, productId } from '../utils/products';
 const slides = [
   {
     image: '/assets/home-hero2.png',
-    eyebrow: 'ABBY COLLECTIONS LTD FOR EVERY CONCERN',
-    title: 'Skincare Solutions',
-    description: 'Thoughtful beauty essentials for the routines and moments that make you feel your best.',
-    action: 'SHOP TREATMENTS',
+    eyebrow: 'YOUR STYLE, YOUR BEAUTY, YOUR COLLECTION',
+    title: 'Beauty for Your Everyday',
+    description: 'Explore beauty essentials selected to help you express your style and feel confident in your own way.',
+    action: 'SHOP BEAUTY',
     category: 'Face Cream',
   },
   {
     image: '/assets/home-hero3.png',
-    eyebrow: 'DEEP MOISTURE, HEALTHY GLOW',
-    title: 'Hydration Therapy',
-    description: 'Discover nourishing creams, lotions and oils for a softer, more comfortable-feeling complexion.',
-    action: 'SHOP RELEVANT PRODUCTS',
+    eyebrow: 'CARE THAT FITS YOUR ROUTINE',
+    title: 'Everyday Beauty Essentials',
+    description: 'Find lotions, creams and oils to make your daily beauty routine feel like your own.',
+    action: 'EXPLORE BODY CARE',
     category: 'Body Lotions',
   },
   {
     image: '/assets/home-hero4.png',
-    eyebrow: 'SMOOTH, FIRM, REVITALIZE',
-    title: 'Anti-Aging Essentials',
-    description: 'Explore skincare favourites selected to make your daily self-care feel special.',
-    action: 'EXPLORE TOP PRODUCTS',
+    eyebrow: 'A COLLECTION THAT FEELS LIKE YOU',
+    title: 'Make Your Look Your Own',
+    description: 'From beauty favourites to the finishing touches, discover pieces that bring your personal style together.',
+    action: 'EXPLORE THE COLLECTION',
     category: 'Creams',
   },
   {
     image: '/assets/home-hero1.png',
-    eyebrow: 'REVEAL RADIANT, EVEN SKIN',
-    title: 'Brightening Care',
-    description: 'Find brightening skincare and beauty essentials for your routine.',
-    action: 'SHOP WITH DES-COLLECTION',
+    eyebrow: 'BEAUTY, STYLE AND MORE',
+    title: 'Your Collection Starts Here',
+    description: 'Shop cosmetics, fashion and lifestyle essentials chosen with your taste, comfort and confidence in mind.',
+    action: 'SHOP THE COLLECTION',
     category: 'Face Cream',
   },
 ];
@@ -82,7 +82,7 @@ function HeroCarousel() {
   }, [active]);
 
   return (
-    <section className="home-hero" aria-label="Featured skincare collections">
+    <section className="home-hero" aria-label="Des-Collection featured products">
       <img key={slide.image} className="home-hero-image" src={slide.image} alt="" />
       <div className="home-hero-shade" />
       <div className="home-hero-copy" key={slide.title}>
@@ -143,7 +143,7 @@ function BestSellingCategories({ products }) {
 
   return (
     <section className="home-categories-section">
-      <SectionTitle eyebrow="FIND YOUR NEXT FAVOURITE" title="Shop by category" linkText="ALL CATEGORIES" to="/shop" />
+      <SectionTitle eyebrow="EXPLORE WHAT SUITS YOUR STYLE" title="Shop by category" linkText="EXPLORE ALL CATEGORIES" to="/shop" />
       <div className="home-category-grid">
         {categoryCards.map(({ name, count }) => (
           <Link to={`/category/${encodeURIComponent(name)}`} key={name}>
@@ -160,8 +160,8 @@ function BlemishFeature() {
     <section className="blemish-feature">
       <div className="blemish-copy">
         <span className="blemish-tag">BLEMISH CONTROL</span>
-        <h2>Make room for a calmer routine.</h2>
-        <p>Explore skincare essentials selected for blemish-prone skin and everyday care.</p>
+        <h2>Find beauty essentials for your routine.</h2>
+        <p>Explore face care and cleansing products as part of a routine that works for you.</p>
         <Link className="blemish-button" to="/category/Cleanser">SHOP NOW <ArrowRight size={17} aria-hidden="true" /></Link>
       </div>
       <img src="/assets/blemish-control.png" alt="Skincare portrait for the blemish control collection" />
@@ -179,8 +179,8 @@ function EditorChoice({ products }) {
     <section className="home-editors">
       <div className="home-editors-heading">
         <span>THE DES-COLLECTION EDIT</span>
-        <h2>Editor’s Choice &amp; Discounts</h2>
-        <div className="home-editor-tabs" role="tablist" aria-label="Editor’s Choice products">
+        <h2>Des-Collection Picks &amp; Offers</h2>
+        <div className="home-editor-tabs" role="tablist" aria-label="Des-Collection picks and offers">
           <button role="tab" aria-selected={tab === 'featured'} className={tab === 'featured' ? 'active' : ''} onClick={() => setTab('featured')}>FEATURED PRODUCTS</button>
           <button role="tab" aria-selected={tab === 'discounted'} className={tab === 'discounted' ? 'active' : ''} onClick={() => setTab('discounted')}>DISCOUNTED PRODUCTS</button>
         </div>
