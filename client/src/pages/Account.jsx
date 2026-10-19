@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Check, CircleCheck, Eye, EyeOff } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import AccountModal from '../components/AccountModal';
 import { API } from '../data/catalog';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -34,7 +35,22 @@ export default function Account() {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [message, setMessage] = useState(searchParams.has('verified') ? 'Email confirmed. You can now sign in.' : '');
+  const [modal, setModal] = useState(() => {
+    if (searchParams.has('verified')) return {
+      eyebrow: 'EMAIL CONFIRMED',
+      title: 'You’re all set',
+      description: 'Your email is verified. You can now sign in to your account.',
+      icon: CircleCheck,
+    };
+    if (searchParams.has('passwordReset')) return {
+      eyebrow: 'PASSWORD UPDATED',
+      title: 'You’re all set',
+      description: 'Password updated. You can now sign in.',
+      icon: CircleCheck,
+    };
+    return null;
+  });
+  const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const resetToken = searchParams.get('reset') || '';
   const verificationToken = searchParams.get('verify') || '';
@@ -50,7 +66,12 @@ export default function Account() {
     request
       .then((data) => {
         if (!active) return;
-        setMessage(data.message);
+        setModal({
+          eyebrow: 'EMAIL CONFIRMED',
+          title: 'You’re all set',
+          description: 'Your email is verified. You can now sign in to your account.',
+          icon: CircleCheck,
+        });
         navigate('/account?verified=1', { replace: true });
       })
       .catch((error) => { if (active) setMessage(error.message); });
@@ -162,14 +183,46 @@ export default function Account() {
       if (mode === 'register') {
         setForm((current) => ({ ...current, password: '', confirmPassword: '' }));
         setMode('login');
+        setMessage('');
+        setModal({
+          eyebrow: 'ONE LAST STEP',
+          title: 'Check your inbox',
+          description: <>We sent a verification link to <strong>{form.email}</strong>. Open the email and click the link to confirm your account.</>,
+          hint: <><Check size={16} /> If it’s not there, check your spam or junk folder.</>,
+        });
+        return;
       } else if (mode === 'reset') {
         setForm((current) => ({ ...current, password: '', confirmPassword: '' }));
         setMode('login');
         navigate('/account?passwordReset=1', { replace: true });
+        setModal({
+          eyebrow: 'PASSWORD UPDATED',
+          title: 'You’re all set',
+          description: data.message,
+          icon: CircleCheck,
+        });
+        return;
+      } else if (mode === 'forgot') {
+        setModal({
+          eyebrow: 'PASSWORD RESET',
+          title: 'Check your inbox',
+          description: data.message,
+          hint: <>If an account exists for <strong>{form.email}</strong>, you’ll receive a reset link. Check your spam or junk folder too.</>,
+        });
+        return;
       }
       setMessage(data.message);
     } catch (error) {
-      setMessage(error.message || 'Account service unavailable. Please try again.');
+      if (mode === 'login' && /confirm your email/i.test(error.message)) {
+        setModal({
+          eyebrow: 'ONE LAST STEP',
+          title: 'Check your inbox',
+          description: <>Your account still needs email verification. Open the confirmation link sent to <strong>{form.email}</strong>, then sign in again.</>,
+          hint: <><Check size={16} /> If it’s not there, check your spam or junk folder.</>,
+        });
+      } else {
+        setMessage(error.message || 'Account service unavailable. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -231,6 +284,8 @@ export default function Account() {
       {mode === 'forgot' && <button className="account-text-action" type="button" onClick={() => { setMode('login'); setMessage(''); }}>Back to sign in</button>}
       {mode === 'reset' && !resetToken && <p className="account-feedback is-error">This password reset link is missing or invalid. Request a new one.</p>}
       {message && <p className={`account-feedback${/invalid|expired|could not|failed|match/i.test(message) ? ' is-error' : ''}`} role="status">{message}</p>}
+
+      <AccountModal {...(modal || {})} open={Boolean(modal)} onClose={() => setModal(null)} />
 
       {mode === 'forgot' && <p className="account-hint">Enter your account email. If an account exists, we’ll send a password reset link.</p>}
       {['login', 'register'].includes(mode) && <div className="google-account-option"><span>or continue with</span>{googleClientId ? <div ref={googleButton} /> : <p className="account-hint">Google sign-in is not configured for this deployment. Add VITE_GOOGLE_CLIENT_ID to the client environment and redeploy.</p>}</div>}

@@ -7,6 +7,20 @@
 .cart-svg{width:29px;height:29px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}.bottom-nav .cart-svg{width:30px;height:30px}.compare-detail{display:block;margin-top:15px;padding:12px 0;border:0;background:none;color:var(--plum);font-size:12px;font-weight:700}.compare-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px}.compare-grid article{border:1px solid var(--line);padding:16px}.compare-grid img{width:100%;height:180px;object-fit:contain}.compare-grid h2{font-size:16px;font-weight:500}.compare-grid button{display:block;margin-top:15px;border:1px solid var(--line);background:white;padding:9px 12px}
 .account-switch{display:flex;border-bottom:1px solid var(--line);max-width:440px;margin:25px 0}.account-switch button{width:50%;padding:14px;border:0;background:white;color:#888}.account-switch button.active{color:var(--plum);border-bottom:2px solid var(--plum)}.account-note{display:block;color:#888;margin-top:20px}
 
+.account-modal-backdrop{position:fixed;z-index:40;inset:0;display:grid;place-items:center;padding:22px;background:#1d171bcc;backdrop-filter:blur(3px)}
+.account-confirmation-modal{position:relative;width:min(100%,480px);padding:44px 42px 38px;border-radius:12px;background:#fff;text-align:center;box-shadow:0 24px 80px #0004;animation:account-modal-in .2s ease-out both}
+.account-modal-close{position:absolute;top:15px;right:15px;display:grid;place-items:center;width:38px;height:38px;border:0;border-radius:50%;background:#f5f2f4;color:#6d6269}
+.account-modal-icon{display:grid;place-items:center;width:62px;height:62px;margin:0 auto 22px;border-radius:50%;background:#f2eaf0;color:var(--plum)}
+.account-confirmation-modal .kicker{margin:0 0 10px;font-size:10px}
+.account-confirmation-modal h2{margin:0 0 14px;font-size:clamp(28px,6vw,36px);font-weight:500;letter-spacing:-.04em}
+.account-modal-description{margin:0;color:#706a6e;font-size:15px;line-height:1.7;overflow-wrap:anywhere}
+.account-modal-description strong{color:#302a2e;font-weight:700}
+.account-modal-hint{display:flex;align-items:flex-start;justify-content:center;gap:8px;margin:20px 0 0;color:#716a6f;font-size:12px;line-height:1.5}
+.account-modal-hint svg{flex:none;color:var(--plum)}
+.account-modal-done{width:100%;margin-top:25px;border-radius:5px}
+@keyframes account-modal-in{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:520px){.account-confirmation-modal{padding:40px 24px 26px}}
+
 .checkout-layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.8fr);gap:42px;align-items:start}.checkout-form{display:grid;gap:17px}.checkout-form label{display:grid;gap:7px;color:#555;font-size:13px}.checkout-form input{width:100%;border:1px solid var(--line);padding:14px;font-size:15px}.checkout-address-row{display:grid;grid-template-columns:1fr 1fr;gap:15px}.checkout-summary{border:1px solid var(--line);padding:24px}.checkout-summary h2{font-size:22px;font-weight:500;margin:0 0 20px}.checkout-item,.checkout-totals{display:grid;grid-template-columns:1fr auto;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}.checkout-item span{padding-right:10px}.checkout-totals{margin-top:12px}.checkout-totals strong{font-size:15px}.checkout-summary>a{display:inline-block;margin-top:18px;color:var(--plum);font-size:12px;font-weight:700}.checkout-price-note{padding:13px;background:#f8f2ed;color:#6d4d39;line-height:1.5;font-size:13px}.checkout-form .shop-now{justify-self:start;margin-top:4px}.checkout-page{padding-top:80px}
 @media(max-width:760px){.checkout-layout{grid-template-columns:1fr;gap:24px}.checkout-summary{grid-row:1}.checkout-address-row{grid-template-columns:1fr}.checkout-form .shop-now{width:100%}}
 
