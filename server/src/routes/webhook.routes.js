@@ -21,6 +21,9 @@ router.post("/", async (req, res) => {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
+    const customer = session.customer_details || {};
+    const shipping = session.shipping_details || {};
+    const shippingAddress = shipping.address || customer.address || {};
 
     const existingOrder = await Order.findOne({
       stripeSessionId: session.id,
@@ -41,12 +44,12 @@ router.post("/", async (req, res) => {
     await Order.create({
       productId: session.metadata.productId,
       items: session.metadata.items,
-      customerName: session.metadata.customerName || session.customer_details?.name || "",
-      customerEmail: session.customer_email || "",
-      customerPhone: session.metadata.customerPhone || "",
-      deliveryAddress: session.metadata.deliveryAddress || "",
-      deliveryCity: session.metadata.deliveryCity || "",
-      deliveryPostcode: session.metadata.deliveryPostcode || "",
+      customerName: session.metadata.customerName || shipping.name || customer.name || "",
+      customerEmail: customer.email || session.customer_email || "",
+      customerPhone: session.metadata.customerPhone || customer.phone || "",
+      deliveryAddress: session.metadata.deliveryAddress || [shippingAddress.line1, shippingAddress.line2].filter(Boolean).join(", "),
+      deliveryCity: session.metadata.deliveryCity || shippingAddress.city || "",
+      deliveryPostcode: session.metadata.deliveryPostcode || shippingAddress.postal_code || "",
       stripeSessionId: session.id,
       amount: session.amount_total / 100,
       status: "paid",

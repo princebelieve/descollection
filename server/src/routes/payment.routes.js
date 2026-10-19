@@ -9,14 +9,11 @@ const router = express.Router();
 // Cart checkout: prices are always read from MongoDB on the server.
 router.post("/create-cart-session", async (req, res) => {
   try {
-    const { items, customer } = req.body;
+    const { items, customer, uiMode } = req.body;
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: "Your cart is empty" });
     }
-    const requiredCustomerFields = ["name", "email", "phone", "address", "city", "postcode"];
-    if (!customer || requiredCustomerFields.some((field) => !String(customer[field] || "").trim())) {
-      return res.status(400).json({ message: "Please enter your delivery and contact details" });
-    }
+    const customerEmail = String(customer?.email || "").trim();
 
     const normalized = items.map(({ id, qty }) => ({
       id: String(id || ""),
@@ -56,22 +53,29 @@ router.post("/create-cart-session", async (req, res) => {
         quantity: 1,
       });
     }
-    const session = await stripe.checkout.sessions.create({
+    const embedded = uiMode === "embedded";
+    const sessionOptions = {
       mode: "payment",
-      customer_email: String(customer.email).trim(),
       metadata: {
         items: JSON.stringify(normalized),
-        customerName: String(customer.name).trim().slice(0, 500),
-        customerPhone: String(customer.phone).trim().slice(0, 500),
-        deliveryAddress: String(customer.address).trim().slice(0, 500),
-        deliveryCity: String(customer.city).trim().slice(0, 500),
-        deliveryPostcode: String(customer.postcode).trim().slice(0, 500),
       },
       line_items,
-      success_url: `${process.env.CLIENT_URL}/checkout/success`,
-      cancel_url: `${process.env.CLIENT_URL}/checkout/cancelled`,
-    });
-    res.json({ url: session.url });
+      allow_promotion_codes: true,
+      billing_address_collection: "required",
+      phone_number_collection: { enabled: true },
+      shipping_address_collection: { allowed_countries: ["GB"] },
+      ...(customerEmail ? { customer_email: customerEmail } : {}),
+    };
+    if (embedded) {
+      sessionOptions.ui_mode = "embedded";
+      sessionOptions.redirect_on_completion = "always";
+      sessionOptions.return_url = `${process.env.CLIENT_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
+    } else {
+      sessionOptions.success_url = `${process.env.CLIENT_URL}/checkout/success`;
+      sessionOptions.cancel_url = `${process.env.CLIENT_URL}/checkout/cancelled`;
+    }
+    const session = await stripe.checkout.sessions.create(sessionOptions);
+    res.json(embedded ? { clientSecret: session.client_secret } : { url: session.url });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

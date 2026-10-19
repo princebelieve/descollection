@@ -15,7 +15,7 @@ export default function Footer() {
           <Link to="/" aria-label="Des-Collection home"><img src="/logo.png" alt="Des-Collection" /></Link>
           <address>
             <a href="tel:+447440248472">Call: +44 7440 248472</a>
-            <a href="mailto:admin@descollection.co.uk">Email: admin@descollection.co.uk</a>
+            <a href="mailto:sales@descollection.co.uk">Email: sales@descollection.co.uk</a>
             <span>312 Moston Lane, Manchester M40 9WB</span>
           </address>
           <h3>Information</h3>
