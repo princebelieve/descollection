@@ -1,6 +1,8 @@
 import { Route, Routes } from 'react-router-dom';
 import StoreHeader from './components/layout/Header';
 import Footer from './components/layout/Footer';
+import WhatsAppButton from './components/layout/WhatsAppButton';
+import RecentSalesNotice from './components/layout/RecentSalesNotice';
 import Catalog from './components/products/Catalog';
 import { StoreProvider } from './context/StoreContext';
 import Account from './pages/Account';
@@ -46,5 +48,5 @@ export default function App() {
     <Route path="/checkout/success" element={<CheckoutResult success />} />
     <Route path="/checkout/cancelled" element={<CheckoutResult success={false} />} />
     <Route path="*" element={<Home />} />
-  </Routes><Footer /></StoreProvider>;
+  </Routes><Footer /><WhatsAppButton /><RecentSalesNotice /></StoreProvider>;
 }

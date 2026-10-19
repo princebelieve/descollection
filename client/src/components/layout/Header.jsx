@@ -1,14 +1,78 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Heart, Menu, Scale, Search, Store, UserRound } from 'lucide-react';
 import { categories, menuItems } from '../../data/catalog';
 import { useStore } from '../../context/StoreContext';
 import CartIcon from '../icons/CartIcon';
 
-export default function Header(){const {cart,wishlist,compare}=useStore();const [drawer,setDrawer]=useState(false),[tab,setTab]=useState('categories'),[search,setSearch]=useState(false),[term,setTerm]=useState('');const nav=useNavigate();useEffect(()=>{const open=()=>{setTab('categories');setDrawer(true)};window.addEventListener('des-open-categories',open);return()=>window.removeEventListener('des-open-categories',open)},[]);
- const submit=e=>{e.preventDefault();nav(`/shop?search=${encodeURIComponent(term)}`);setSearch(false);setDrawer(false)};
- return <><header className="topbar"><button className="head-icon hamburger" onClick={()=>{setDrawer(true);setTab('categories')}} aria-label="Open navigation">☰</button><button className="head-icon compare" onClick={()=>nav('/compare')} title="Compare">⚖︎<i>{compare.length}</i></button><Link className="logo" to="/"><img src="/assets/des-collection-logo.png" alt="Des-Collection"/></Link><button className="head-icon cart-head" onClick={()=>nav('/cart')} aria-label="Cart"><CartIcon/><i>{cart.reduce((n,x)=>n+x.qty,0)}</i></button><button className="search-open" onClick={()=>setSearch(x=>!x)}><span>⌕</span><b>Search</b></button></header>
- {search&&<form className="search-panel" onSubmit={submit}><input autoFocus placeholder="Search for products" value={term} onChange={e=>setTerm(e.target.value)}/><button>⌕</button></form>}
- {drawer&&<div className="drawer-shade" onClick={()=>setDrawer(false)}><aside className="nav-drawer" onClick={e=>e.stopPropagation()}><form className="drawer-search" onSubmit={submit}><input placeholder="Search for products" value={term} onChange={e=>setTerm(e.target.value)}/><button>⌕</button></form><div className="drawer-tabs"><button className={tab==='categories'?'selected':''} onClick={()=>setTab('categories')}>CATEGORIES</button><button className={tab==='menu'?'selected':''} onClick={()=>setTab('menu')}>MENU</button></div><div className="drawer-links">{tab==='categories'?categories.map(c=><Link key={c} to={c==='Brands'?'/brands':`/category/${encodeURIComponent(c)}`} onClick={()=>setDrawer(false)}>{c.toUpperCase()}</Link>):menuItems.map(([label,path])=><Link key={path} to={path} onClick={()=>setDrawer(false)}>{label}</Link>)}</div></aside></div>}
- <BottomNav cartCount={cart.reduce((n,x)=>n+x.qty,0)} wishCount={wishlist.length}/></>}
+export default function Header() {
+  const { cart, wishlist, compare } = useStore();
+  const [drawer, setDrawer] = useState(false);
+  const [tab, setTab] = useState('categories');
+  const [search, setSearch] = useState(false);
+  const [term, setTerm] = useState('');
+  const nav = useNavigate();
+  const cartCount = cart.reduce((count, item) => count + item.qty, 0);
 
-function BottomNav({cartCount,wishCount}){return <nav className="bottom-nav"><NavLink to="/shop"><span>▣</span>Shop</NavLink><NavLink to="/wishlist"><span>♡{wishCount>0&&<i>{wishCount}</i>}</span>Wishlist</NavLink><NavLink to="/cart"><span><CartIcon/>{cartCount>0&&<i>{cartCount}</i>}</span>Cart</NavLink><NavLink to="/account"><span>♙</span>My account</NavLink></nav>}
+  useEffect(() => {
+    const open = () => {
+      setTab('categories');
+      setDrawer(true);
+    };
+    window.addEventListener('des-open-categories', open);
+    return () => window.removeEventListener('des-open-categories', open);
+  }, []);
+
+  const submit = (event) => {
+    event.preventDefault();
+    nav(`/shop?search=${encodeURIComponent(term)}`);
+    setSearch(false);
+    setDrawer(false);
+  };
+
+  return (
+    <>
+      <header className="topbar">
+        <button className="head-icon hamburger" onClick={() => { setDrawer(true); setTab('categories'); }} aria-label="Open navigation"><Menu /></button>
+        <button className="head-icon compare" onClick={() => nav('/compare')} title="Compare"><Scale /><i>{compare.length}</i></button>
+        <Link className="logo" to="/"><img src="/assets/des-collection-logo.png" alt="Des-Collection" /></Link>
+        <button className="head-icon cart-head" onClick={() => nav('/cart')} aria-label={`Cart, ${cartCount} items`}><CartIcon /><i>{cartCount}</i></button>
+        <Link className="account-head" to="/account" aria-label="Sign in or sign up"><UserRound /><span>Sign in / Sign up</span></Link>
+        <button className="search-open" onClick={() => setSearch((open) => !open)} aria-expanded={search}><Search /><b>Search</b></button>
+      </header>
+
+      {search && <form className="search-panel" onSubmit={submit}><input autoFocus placeholder="Search for products" value={term} onChange={(event) => setTerm(event.target.value)} /><button aria-label="Search"><Search /></button></form>}
+
+      {drawer && (
+        <div className="drawer-shade" onClick={() => setDrawer(false)}>
+          <aside className="nav-drawer" onClick={(event) => event.stopPropagation()}>
+            <form className="drawer-search" onSubmit={submit}><input placeholder="Search for products" value={term} onChange={(event) => setTerm(event.target.value)} /><button aria-label="Search"><Search /></button></form>
+            <div className="drawer-tabs">
+              <button className={tab === 'categories' ? 'selected' : ''} onClick={() => setTab('categories')}>CATEGORIES</button>
+              <button className={tab === 'menu' ? 'selected' : ''} onClick={() => setTab('menu')}>MENU</button>
+            </div>
+            <div className="drawer-links">
+              {tab === 'categories'
+                ? categories.map((category) => <Link key={category} to={category === 'Brands' ? '/brands' : `/category/${encodeURIComponent(category)}`} onClick={() => setDrawer(false)}>{category.toUpperCase()}</Link>)
+                : menuItems.map(([label, path]) => <Link key={path} to={path} onClick={() => setDrawer(false)}>{label}</Link>)}
+            </div>
+            <Link className="drawer-account-link" to="/account" onClick={() => setDrawer(false)}><UserRound size={21} />Sign in or create an account</Link>
+          </aside>
+        </div>
+      )}
+
+      <BottomNav cartCount={cartCount} wishCount={wishlist.length} />
+    </>
+  );
+}
+
+function BottomNav({ cartCount, wishCount }) {
+  return (
+    <nav className="bottom-nav">
+      <NavLink to="/shop"><span><Store /></span>Shop</NavLink>
+      <NavLink to="/wishlist"><span><Heart />{wishCount > 0 && <i>{wishCount}</i>}</span>Wishlist</NavLink>
+      <NavLink to="/cart"><span><CartIcon />{cartCount > 0 && <i>{cartCount}</i>}</span>Cart</NavLink>
+      <NavLink to="/account"><span><UserRound /></span>Sign in</NavLink>
+    </nav>
+  );
+}
