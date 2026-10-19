@@ -7,7 +7,7 @@ const router = express.Router();
 router.get("/", async (_req, res) => {
   try {
     const settings = await StoreSettings.findOne({ key: "store" });
-    res.json({ deliveryFee: settings?.deliveryFee ?? Math.max(0, Number(process.env.DELIVERY_FEE) || 0) });
+    res.json({ deliveryFee: settings?.deliveryFee ?? 0 });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

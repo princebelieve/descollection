@@ -1,4 +1,238 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { API } from '../data/catalog';
 
-export default function Account(){const [form,setForm]=useState({name:'',email:'',password:''}),[message,setMessage]=useState(''),[mode,setMode]=useState('login');return <main className="page account-page"><p className="kicker">WELCOME BACK</p><h1>My account</h1><div className="account-switch"><button className={mode==='login'?'active':''} onClick={()=>setMode('login')}>SIGN IN</button><button className={mode==='register'?'active':''} onClick={()=>setMode('register')}>REGISTER</button></div><form onSubmit={async e=>{e.preventDefault();try{const r=await fetch(`${API}/api/auth/${mode==='login'?'login':'register'}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(form)}),d=await r.json();if(!r.ok)throw Error(d.message);localStorage.setItem('des-token',d.token);localStorage.setItem('des-role',d.role);setMessage(`Signed in as ${d.name||d.email}`)}catch(err){setMessage(err.message||'Account service unavailable')}}}>{mode==='register'&&<label>Name<input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></label>}<label>Email<input type="email" required value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></label><label>Password<input type="password" required minLength="6" value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/></label><button className="shop-now">{mode==='login'?'SIGN IN':'CREATE ACCOUNT'}</button><p>{message}</p></form><small className="account-note">Admin access is assigned only to email addresses on the server’s ADMIN_EMAILS allowlist.</small></main>}
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const verificationRequests = new Map();
+
+async function readResponse(response) {
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.message || 'Something went wrong. Please try again.');
+  return data;
+}
+
+function PasswordField({ label, value, onChange, autoComplete, show, onToggle, required = true }) {
+  return (
+    <label className="account-field">
+      {label}
+      <span className="password-input-row">
+        <button className="password-visibility" type="button" onClick={onToggle} aria-label={show ? 'Hide password' : 'Show password'} title={show ? 'Hide password' : 'Show password'}>
+          {show ? <EyeOff size={20} /> : <Eye size={20} />}
+        </button>
+        <input type={show ? 'text' : 'password'} required={required} minLength={autoComplete === 'current-password' ? undefined : 8} autoComplete={autoComplete} value={value} onChange={onChange} />
+      </span>
+    </label>
+  );
+}
+
+export default function Account() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const googleButton = useRef(null);
+  const [mode, setMode] = useState(searchParams.has('reset') ? 'reset' : 'login');
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [message, setMessage] = useState(searchParams.has('verified') ? 'Email confirmed. You can now sign in.' : '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const resetToken = searchParams.get('reset') || '';
+  const verificationToken = searchParams.get('verify') || '';
+
+  useEffect(() => {
+    if (!verificationToken) return undefined;
+    let active = true;
+    let request = verificationRequests.get(verificationToken);
+    if (!request) {
+      request = fetch(`${API}/api/auth/verify-email?token=${encodeURIComponent(verificationToken)}`).then(readResponse);
+      verificationRequests.set(verificationToken, request);
+    }
+    request
+      .then((data) => {
+        if (!active) return;
+        setMessage(data.message);
+        navigate('/account?verified=1', { replace: true });
+      })
+      .catch((error) => { if (active) setMessage(error.message); });
+    return () => { active = false; };
+  }, [verificationToken, navigate]);
+
+  useEffect(() => {
+    if (!googleClientId || !googleButton.current || !['login', 'register'].includes(mode)) return undefined;
+    let active = true;
+    const renderButton = () => {
+      if (!active || !window.google?.accounts?.id || !googleButton.current) return;
+      googleButton.current.replaceChildren();
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: async ({ credential }) => {
+          setIsSubmitting(true);
+          setMessage('');
+          try {
+            const response = await fetch(`${API}/api/auth/google`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ credential }),
+            });
+            const data = await readResponse(response);
+            localStorage.setItem('des-token', data.token);
+            localStorage.setItem('des-role', data.role);
+            navigate('/', { replace: true });
+          } catch (error) {
+            setMessage(error.message);
+          } finally {
+            setIsSubmitting(false);
+          }
+        },
+      });
+      window.google.accounts.id.renderButton(googleButton.current, {
+        theme: 'outline',
+        size: 'large',
+        shape: 'rectangular',
+        text: mode === 'register' ? 'signup_with' : 'signin_with',
+        width: Math.max(240, Math.floor(googleButton.current.clientWidth)),
+      });
+    };
+
+    if (window.google?.accounts?.id) {
+      renderButton();
+    } else {
+      let script = document.querySelector('script[data-google-identity]');
+      if (!script) {
+        script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
+        script.dataset.googleIdentity = 'true';
+        document.head.appendChild(script);
+      }
+      script.addEventListener('load', renderButton);
+      return () => {
+        active = false;
+        script.removeEventListener('load', renderButton);
+      };
+    }
+
+    return () => { active = false; };
+  }, [mode, navigate]);
+
+  const updateForm = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }));
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setMessage('');
+
+    if (['register', 'reset'].includes(mode) && form.password !== form.confirmPassword) {
+      setMessage('Your passwords do not match.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      let endpoint;
+      let payload;
+      if (mode === 'forgot') {
+        endpoint = 'forgot-password';
+        payload = { email: form.email };
+      } else if (mode === 'reset') {
+        endpoint = 'reset-password';
+        payload = { token: resetToken, password: form.password };
+      } else {
+        endpoint = mode === 'login' ? 'login' : 'register';
+        payload = mode === 'login'
+          ? { email: form.email, password: form.password }
+          : { name: form.name, email: form.email, password: form.password };
+      }
+
+      const response = await fetch(`${API}/api/auth/${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await readResponse(response);
+
+      if (mode === 'login') {
+        localStorage.setItem('des-token', data.token);
+        localStorage.setItem('des-role', data.role);
+        navigate('/', { replace: true });
+        return;
+      }
+      if (mode === 'register') {
+        setForm((current) => ({ ...current, password: '', confirmPassword: '' }));
+        setMode('login');
+      } else if (mode === 'reset') {
+        setForm((current) => ({ ...current, password: '', confirmPassword: '' }));
+        setMode('login');
+        navigate('/account?passwordReset=1', { replace: true });
+      }
+      setMessage(data.message);
+    } catch (error) {
+      setMessage(error.message || 'Account service unavailable. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const title = mode === 'register' ? 'Create your account' : mode === 'forgot' ? 'Reset your password' : mode === 'reset' ? 'Choose a new password' : 'Welcome back';
+
+  return (
+    <main className="page account-page">
+      <p className="kicker">DES-COLLECTION ACCOUNT</p>
+      <h1>{title}</h1>
+
+      {['login', 'register'].includes(mode) && (
+        <div className="account-switch" role="tablist" aria-label="Account access">
+          <button type="button" role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'active' : ''} onClick={() => { setMode('login'); setMessage(''); }}>SIGN IN</button>
+          <button type="button" role="tab" aria-selected={mode === 'register'} className={mode === 'register' ? 'active' : ''} onClick={() => { setMode('register'); setMessage(''); }}>SIGN UP</button>
+        </div>
+      )}
+
+      <form className="account-form" onSubmit={submit}>
+        {mode === 'register' && <label className="account-field">Name<input type="text" autoComplete="name" required value={form.name} onChange={updateForm('name')} /></label>}
+        {mode !== 'reset' && <label className="account-field">Email<input type="email" autoComplete="email" required value={form.email} onChange={updateForm('email')} /></label>}
+        {['login', 'register', 'reset'].includes(mode) && (
+          <PasswordField
+            label="Password"
+            value={form.password}
+            onChange={updateForm('password')}
+            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+            show={showPassword}
+            onToggle={() => setShowPassword((shown) => !shown)}
+          />
+        )}
+        {mode === 'register' && (
+          <PasswordField
+            label="Confirm password"
+            value={form.confirmPassword}
+            onChange={updateForm('confirmPassword')}
+            autoComplete="new-password"
+            show={showConfirmation}
+            onToggle={() => setShowConfirmation((shown) => !shown)}
+          />
+        )}
+        {mode === 'reset' && (
+          <PasswordField
+            label="Confirm new password"
+            value={form.confirmPassword}
+            onChange={updateForm('confirmPassword')}
+            autoComplete="new-password"
+            show={showConfirmation}
+            onToggle={() => setShowConfirmation((shown) => !shown)}
+          />
+        )}
+        <button className="shop-now account-submit" disabled={isSubmitting || (mode === 'reset' && !resetToken)}>
+          {isSubmitting ? 'PLEASE WAIT…' : mode === 'login' ? 'SIGN IN' : mode === 'register' ? 'CREATE ACCOUNT' : mode === 'forgot' ? 'SEND RESET LINK' : 'UPDATE PASSWORD'}
+        </button>
+      </form>
+
+      {mode === 'login' && <button className="account-text-action" type="button" onClick={() => { setMode('forgot'); setMessage(''); }}>Forgot password?</button>}
+      {mode === 'forgot' && <button className="account-text-action" type="button" onClick={() => { setMode('login'); setMessage(''); }}>Back to sign in</button>}
+      {mode === 'reset' && !resetToken && <p className="account-feedback is-error">This password reset link is missing or invalid. Request a new one.</p>}
+      {message && <p className={`account-feedback${/invalid|expired|could not|failed|match/i.test(message) ? ' is-error' : ''}`} role="status">{message}</p>}
+
+      {mode === 'forgot' && <p className="account-hint">Enter your account email. If an account exists, we’ll send a password reset link.</p>}
+      {googleClientId && ['login', 'register'].includes(mode) && <div className="google-account-option"><span>or continue with</span><div ref={googleButton} /></div>}
+      <small className="account-note">Admin access is assigned only to email addresses on the server’s ADMIN_EMAILS allowlist.</small>
+    </main>
+  );
+}

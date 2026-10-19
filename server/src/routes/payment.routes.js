@@ -45,7 +45,7 @@ router.post("/create-cart-session", async (req, res) => {
       };
     });
     const settings = await StoreSettings.findOne({ key: "store" });
-    const deliveryFee = settings?.deliveryFee ?? Math.max(0, Number(process.env.DELIVERY_FEE) || 0);
+    const deliveryFee = settings?.deliveryFee ?? 0;
     if (deliveryFee > 0) {
       line_items.push({
         price_data: {

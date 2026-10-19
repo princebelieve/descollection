@@ -15,6 +15,7 @@ const orderRoutes = require("./routes/order.routes");
 const authRoutes = require("./routes/auth.routes"); // ✅ ADD THIS
 const measurementRoutes = require("./routes/measurementRoutes");
 const settingsRoutes = require("./routes/settings.routes");
+const blogRoutes = require("./routes/blog.routes");
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/measurements", measurementRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/blog", blogRoutes);
 
 app.get("/", (req, res) => {
   if (fs.existsSync(path.join(builtFrontend, "index.html"))) {

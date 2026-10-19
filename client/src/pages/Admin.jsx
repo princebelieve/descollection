@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { API, categories } from '../data/catalog';
 import { useStore } from '../context/StoreContext';
 import { imageOf, money } from '../utils/products';
 
 const emptyProduct = { name: '', category: '', price: '', originalPrice: '', description: '' };
+const emptyPost = { title: '', excerpt: '', content: '', published: false };
 
 export default function Admin() {
   const { products, setProducts, delivery, setDelivery, notify } = useStore();
@@ -13,7 +14,22 @@ export default function Admin() {
   const [file, setFile] = useState(null);
   const [edit, setEdit] = useState(null);
   const [error, setError] = useState('');
+  const [posts, setPosts] = useState([]);
+  const [postForm, setPostForm] = useState(emptyPost);
+  const [postFile, setPostFile] = useState(null);
+  const [editPost, setEditPost] = useState(null);
   const auth = { Authorization: `Bearer ${token}` };
+
+  useEffect(() => {
+    if (!token) return;
+    fetch(`${API}/api/blog/admin`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not load blog posts');
+        setPosts(data);
+      })
+      .catch((err) => setError(err.message));
+  }, [token]);
 
   const loginAdmin = async (event) => {
     event.preventDefault();
@@ -94,6 +110,32 @@ export default function Admin() {
     }
   };
 
+  const savePost = async (event) => {
+    event.preventDefault();
+    const body = new FormData();
+    Object.entries(postForm).forEach(([key, value]) => body.append(key, String(value)));
+    if (postFile) body.append('image', postFile);
+    try {
+      const response = await fetch(`${API}/api/blog${editPost ? `/${editPost}` : ''}`, {
+        method: editPost ? 'PUT' : 'POST', headers: auth, body,
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Could not save blog post');
+      setPosts((current) => editPost ? current.map((post) => post._id === data._id ? data : post) : [data, ...current]);
+      setPostForm(emptyPost); setPostFile(null); setEditPost(null); setError('');
+      notify(data.published ? 'Blog post published' : 'Draft saved');
+    } catch (err) { setError(err.message); }
+  };
+
+  const deletePost = async (id) => {
+    try {
+      const response = await fetch(`${API}/api/blog/${id}`, { method: 'DELETE', headers: auth });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Could not delete blog post');
+      setPosts((current) => current.filter((post) => post._id !== id));
+    } catch (err) { setError(err.message); }
+  };
+
   if (!token) {
     return (
       <main className="page admin-page">
@@ -146,6 +188,19 @@ export default function Admin() {
       </div>
       <label className="delivery-control">Delivery fee (£)<input type="number" min="0" step="0.01" value={delivery} onChange={(event) => { setDelivery(Number(event.target.value)); localStorage.setItem('des-delivery', event.target.value); }} /></label>
       <button className="shop-now" type="button" onClick={saveDelivery}>SAVE DELIVERY FEE</button>
+      <form className="admin-form blog-studio" onSubmit={savePost}>
+        <h2>{editPost ? 'Edit article' : 'Blog content studio'}</h2>
+        <p>Create articles, save drafts, and publish them to the public blog page.</p>
+        <label>Title<input required maxLength="180" value={postForm.title} onChange={(event) => setPostForm({ ...postForm, title: event.target.value })} /></label>
+        <label>Short introduction<textarea maxLength="320" rows="3" value={postForm.excerpt} onChange={(event) => setPostForm({ ...postForm, excerpt: event.target.value })} /></label>
+        <label>Article content<textarea required rows="12" value={postForm.content} onChange={(event) => setPostForm({ ...postForm, content: event.target.value })} /></label>
+        <label>Cover image<input type="file" accept="image/*" onChange={(event) => setPostFile(event.target.files?.[0] || null)} /></label>
+        <label className="blog-publish"><input type="checkbox" checked={postForm.published} onChange={(event) => setPostForm({ ...postForm, published: event.target.checked })} /> Publish on the blog</label>
+        <div className="form-actions"><button className="shop-now">{editPost ? 'SAVE ARTICLE' : 'SAVE ARTICLE'}</button>{editPost && <button type="button" onClick={() => { setEditPost(null); setPostForm(emptyPost); setPostFile(null); }}>Cancel</button>}</div>
+        <p className="error">{error}</p>
+      </form>
+      <h2>Blog articles ({posts.length})</h2>
+      <div className="admin-products">{posts.map((post) => <div key={post._id}>{post.image && <img src={post.image} alt="" />}<span>{post.title}<small>{post.published ? 'Published' : 'Draft'} · {new Date(post.createdAt).toLocaleDateString()}</small></span><button onClick={() => { setEditPost(post._id); setPostForm({ title: post.title, excerpt: post.excerpt || '', content: post.content, published: post.published }); setPostFile(null); }}>Edit</button><button onClick={() => deletePost(post._id)}>Delete</button></div>)}</div>
     </main>
   );
 }
