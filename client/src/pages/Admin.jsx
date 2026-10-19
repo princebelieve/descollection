@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { LoaderCircle } from 'lucide-react';
 import { API, categories } from '../data/catalog';
 import { useStore } from '../context/StoreContext';
 import { imageOf, money } from '../utils/products';
@@ -18,6 +19,7 @@ export default function Admin() {
   const [postForm, setPostForm] = useState(emptyPost);
   const [postFile, setPostFile] = useState(null);
   const [editPost, setEditPost] = useState(null);
+  const [busyAction, setBusyAction] = useState('');
   const auth = { Authorization: `Bearer ${token}` };
 
   useEffect(() => {
@@ -33,6 +35,7 @@ export default function Admin() {
 
   const loginAdmin = async (event) => {
     event.preventDefault();
+    setBusyAction('login');
     try {
       const response = await fetch(`${API}/api/auth/login`, {
         method: 'POST',
@@ -49,11 +52,14 @@ export default function Admin() {
       setError('');
     } catch (err) {
       setError(err.message);
+    } finally {
+      setBusyAction('');
     }
   };
 
   const saveProduct = async (event) => {
     event.preventDefault();
+    setBusyAction('product');
     const payload = { ...form, price: Number(form.price), originalPrice: form.originalPrice ? Number(form.originalPrice) : '' };
     const formData = new FormData();
     Object.entries(payload).forEach(([key, value]) => formData.append(key, value));
@@ -79,10 +85,13 @@ export default function Admin() {
       notify('Product saved');
     } catch (err) {
       setError(err.message);
+    } finally {
+      setBusyAction('');
     }
   };
 
   const removeProduct = async (id) => {
+    setBusyAction(`delete-product:${id}`);
     try {
       const response = await fetch(`${API}/api/products/${id}`, { method: 'DELETE', headers: auth });
       if (!response.ok) throw new Error('Could not delete product');
@@ -91,10 +100,13 @@ export default function Admin() {
       localStorage.setItem('des-products', JSON.stringify(nextProducts));
     } catch (err) {
       setError(err.message);
+    } finally {
+      setBusyAction('');
     }
   };
 
   const saveDelivery = async () => {
+    setBusyAction('delivery');
     try {
       const response = await fetch(`${API}/api/settings`, {
         method: 'PUT',
@@ -108,11 +120,14 @@ export default function Admin() {
       notify('Delivery fee saved');
     } catch (err) {
       setError(err.message);
+    } finally {
+      setBusyAction('');
     }
   };
 
   const savePost = async (event) => {
     event.preventDefault();
+    setBusyAction('post');
     const body = new FormData();
     Object.entries(postForm).forEach(([key, value]) => body.append(key, String(value)));
     if (postFile) body.append('image', postFile);
@@ -126,15 +141,18 @@ export default function Admin() {
       setPostForm(emptyPost); setPostFile(null); setEditPost(null); setError('');
       notify(data.published ? 'Blog post published' : 'Draft saved');
     } catch (err) { setError(err.message); }
+    finally { setBusyAction(''); }
   };
 
   const deletePost = async (id) => {
+    setBusyAction(`delete-post:${id}`);
     try {
       const response = await fetch(`${API}/api/blog/${id}`, { method: 'DELETE', headers: auth });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Could not delete blog post');
       setPosts((current) => current.filter((post) => post._id !== id));
     } catch (err) { setError(err.message); }
+    finally { setBusyAction(''); }
   };
 
   if (!token) {
@@ -145,7 +163,7 @@ export default function Admin() {
         <form onSubmit={loginAdmin}>
           <label>Email<input type="email" required value={login.email} onChange={(event) => setLogin({ ...login, email: event.target.value })} /></label>
           <label>Password<input type="password" required value={login.password} onChange={(event) => setLogin({ ...login, password: event.target.value })} /></label>
-          <button className="shop-now">SIGN IN</button>
+          <button className="shop-now" disabled={busyAction === 'login'}>{busyAction === 'login' ? <><LoaderCircle className="button-spinner" size={17} /> SIGNING IN...</> : 'SIGN IN'}</button>
           <p className="error">{error}</p>
         </form>
       </main>
@@ -165,7 +183,7 @@ export default function Admin() {
         <label>Description<textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></label>
         <label>Product image<input type="file" accept="image/*" onChange={(event) => setFile(event.target.files?.[0] || null)} /></label>
         <div className="form-actions">
-          <button className="shop-now">SAVE PRODUCT</button>
+          <button className="shop-now" disabled={busyAction === 'product'}>{busyAction === 'product' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING PRODUCT...</> : 'SAVE PRODUCT'}</button>
           {edit && <button type="button" onClick={() => { setEdit(null); setForm(emptyProduct); setFile(null); }}>Cancel</button>}
         </div>
         <p className="error">{error}</p>
@@ -182,13 +200,13 @@ export default function Admin() {
                 setEdit(product._id);
                 setForm({ name: product.name, category: product.category, price: product.price, originalPrice: product.originalPrice || '', description: product.description || '' });
               }}>Edit</button>
-              <button onClick={() => removeProduct(product._id)}>Delete</button>
+              <button disabled={busyAction === `delete-product:${product._id}`} onClick={() => removeProduct(product._id)}>{busyAction === `delete-product:${product._id}` ? 'Deleting…' : 'Delete'}</button>
             </>}
           </div>
         ))}
       </div>
       <label className="delivery-control">Delivery fee (£)<input type="number" min="0" step="0.01" value={delivery} onChange={(event) => { setDelivery(Number(event.target.value)); localStorage.setItem('des-delivery', event.target.value); }} /></label>
-      <button className="shop-now" type="button" onClick={saveDelivery}>SAVE DELIVERY FEE</button>
+      <button className="shop-now" type="button" disabled={busyAction === 'delivery'} onClick={saveDelivery}>{busyAction === 'delivery' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING...</> : 'SAVE DELIVERY FEE'}</button>
       <form className="admin-form blog-studio" onSubmit={savePost}>
         <h2>{editPost ? 'Edit article' : 'Blog content studio'}</h2>
         <p>Create articles, save drafts, and publish them to the public blog page.</p>
@@ -197,11 +215,11 @@ export default function Admin() {
         <label>Article content<textarea required rows="12" value={postForm.content} onChange={(event) => setPostForm({ ...postForm, content: event.target.value })} /></label>
         <label>Cover image<input type="file" accept="image/*" onChange={(event) => setPostFile(event.target.files?.[0] || null)} /></label>
         <label className="blog-publish"><input type="checkbox" checked={postForm.published} onChange={(event) => setPostForm({ ...postForm, published: event.target.checked })} /> Publish on the blog</label>
-        <div className="form-actions"><button className="shop-now">{editPost ? 'SAVE ARTICLE' : 'SAVE ARTICLE'}</button>{editPost && <button type="button" onClick={() => { setEditPost(null); setPostForm(emptyPost); setPostFile(null); }}>Cancel</button>}</div>
+        <div className="form-actions"><button className="shop-now" disabled={busyAction === 'post'}>{busyAction === 'post' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING ARTICLE...</> : 'SAVE ARTICLE'}</button>{editPost && <button type="button" onClick={() => { setEditPost(null); setPostForm(emptyPost); setPostFile(null); }}>Cancel</button>}</div>
         <p className="error">{error}</p>
       </form>
       <h2>Blog articles ({posts.length})</h2>
-      <div className="admin-products">{posts.map((post) => <div key={post._id}>{post.image && <img src={post.image} alt="" />}<span>{post.title}<small>{post.published ? 'Published' : 'Draft'} · {new Date(post.createdAt).toLocaleDateString()}</small></span><button onClick={() => { setEditPost(post._id); setPostForm({ title: post.title, excerpt: post.excerpt || '', content: post.content, published: post.published }); setPostFile(null); }}>Edit</button><button onClick={() => deletePost(post._id)}>Delete</button></div>)}</div>
+      <div className="admin-products">{posts.map((post) => <div key={post._id}>{post.image && <img src={post.image} alt="" />}<span>{post.title}<small>{post.published ? 'Published' : 'Draft'} · {new Date(post.createdAt).toLocaleDateString()}</small></span><button onClick={() => { setEditPost(post._id); setPostForm({ title: post.title, excerpt: post.excerpt || '', content: post.content, published: post.published }); setPostFile(null); }}>Edit</button><button disabled={busyAction === `delete-post:${post._id}`} onClick={() => deletePost(post._id)}>{busyAction === `delete-post:${post._id}` ? 'Deleting…' : 'Delete'}</button></div>)}</div>
     </main>
   );
 }
@@ -223,6 +241,6 @@ function ImportStarters({ token, onImported }) {
       } finally {
         setBusy(false);
       }
-    }}>{busy ? 'UPDATING CATALOGUE…' : 'IMPORT STARTERS AND UPDATE PRICES'}</button>
+    }}>{busy ? <><LoaderCircle className="button-spinner" size={17} /> UPDATING CATALOGUE…</> : 'IMPORT STARTERS AND UPDATE PRICES'}</button>
   );
 }

@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
 import { imageOf, money, productId } from '../../utils/products';
+import AddToCartButton from './AddToCartButton';
 
 export default function ProductCard({ product }) {
-  const { add, wishlist, toggleWish } = useStore();
+  const { wishlist, toggleWish } = useStore();
   const id = productId(product);
   const saved = wishlist.some((item) => String(item.id) === id);
   const originalPrice = Number(product.originalPrice);
@@ -23,7 +24,7 @@ export default function ProductCard({ product }) {
         <strong className="product-price">
           {isDiscounted && <del>{money(originalPrice)}</del>}{Number(product.price) > 0 ? money(product.price) : 'Price TBC'}
         </strong>
-        <button className="add-cart" onClick={() => add(product)}>ADD TO CART</button>
+        <AddToCartButton product={product} />
       </div>
     </article>
   );

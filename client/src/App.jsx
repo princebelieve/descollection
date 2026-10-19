@@ -4,6 +4,7 @@ import StoreHeader from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import WhatsAppButton from './components/layout/WhatsAppButton';
 import RecentSalesNotice from './components/layout/RecentSalesNotice';
+import CartDrawer from './components/layout/CartDrawer';
 import Catalog from './components/products/Catalog';
 import { StoreProvider } from './context/StoreContext';
 import Account from './pages/Account';
@@ -39,7 +40,7 @@ function ScrollToTop() {
 }
 
 export default function App() {
-  return <StoreProvider><ScrollToTop /><StoreHeader /><Routes>
+  return <StoreProvider><ScrollToTop /><StoreHeader /><CartDrawer /><Routes>
     <Route path="/" element={<Home />} />
     <Route path="/shop" element={<ShopRoute />} />
     <Route path="/category/:category" element={<CategoryRoute />} />

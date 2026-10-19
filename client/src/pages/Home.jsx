@@ -12,7 +12,7 @@ const slides = [
     eyebrow: 'YOUR STYLE, YOUR BEAUTY, YOUR COLLECTION',
     title: 'Beauty for Your Everyday',
     description: 'Explore beauty essentials selected to help you express your style and feel confident in your own way.',
-    action: 'SHOP BEAUTY',
+    action: 'SHOP WITH DES-COLLECTION',
     category: 'Face Cream',
   },
   {
@@ -86,6 +86,7 @@ function HeroCarousel() {
       <img key={slide.image} className="home-hero-image" src={slide.image} alt="" />
       <div className="home-hero-shade" />
       <div className="home-hero-copy" key={slide.title}>
+        <span className="home-hero-brand">DES-COLLECTION</span>
         <p>{slide.eyebrow}</p>
         <h1>{slide.title}</h1>
         <Link className="home-hero-cta" to={`/category/${encodeURIComponent(slide.category)}`}>

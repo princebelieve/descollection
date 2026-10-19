@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Check, CircleCheck, Eye, EyeOff } from 'lucide-react';
+import { Check, CircleCheck, Eye, EyeOff, LoaderCircle } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import AccountModal from '../components/AccountModal';
 import { API } from '../data/catalog';
@@ -276,7 +276,7 @@ export default function Account() {
           />
         )}
         <button className="shop-now account-submit" disabled={isSubmitting || (mode === 'reset' && !resetToken)}>
-          {isSubmitting ? 'PLEASE WAIT…' : mode === 'login' ? 'SIGN IN' : mode === 'register' ? 'CREATE ACCOUNT' : mode === 'forgot' ? 'SEND RESET LINK' : 'UPDATE PASSWORD'}
+          {isSubmitting ? <><LoaderCircle className="button-spinner" size={17} /> PLEASE WAIT…</> : mode === 'login' ? 'SIGN IN' : mode === 'register' ? 'CREATE ACCOUNT' : mode === 'forgot' ? 'SEND RESET LINK' : 'UPDATE PASSWORD'}
         </button>
       </form>
 
@@ -288,7 +288,7 @@ export default function Account() {
       <AccountModal {...(modal || {})} open={Boolean(modal)} onClose={() => setModal(null)} />
 
       {mode === 'forgot' && <p className="account-hint">Enter your account email. If an account exists, we’ll send a password reset link.</p>}
-      {['login', 'register'].includes(mode) && <div className="google-account-option"><span>or continue with</span>{googleClientId ? <div ref={googleButton} /> : <p className="account-hint">Google sign-in is not configured for this deployment. Add VITE_GOOGLE_CLIENT_ID to the client environment and redeploy.</p>}</div>}
+      {['login', 'register'].includes(mode) && <div className="google-account-option"><span>or continue with</span>{googleClientId ? <div className="google-button-wrap"><div ref={googleButton} />{isSubmitting && <div className="google-button-loading"><LoaderCircle className="button-spinner" size={17} /> CONNECTING...</div>}</div> : <p className="account-hint">Google sign-in is not configured for this deployment. Add VITE_GOOGLE_CLIENT_ID to the client environment and redeploy.</p>}</div>}
       <small className="account-note">Admin access is assigned only to email addresses on the server’s ADMIN_EMAILS allowlist.</small>
     </main>
   );

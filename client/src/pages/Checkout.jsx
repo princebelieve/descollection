@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { LoaderCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { API } from '../data/catalog';
 import { useStore } from '../context/StoreContext';
@@ -48,7 +49,7 @@ export default function Checkout() {
           <label>Postcode<input autoComplete="postal-code" required value={customer.postcode} onChange={(event) => setCustomer({ ...customer, postcode: event.target.value })} /></label>
         </div>
         {missingPrice && <p className="checkout-price-note">An item in your basket needs a price before online payment can continue. Please contact us or check back shortly.</p>}
-        <button className="shop-now" disabled={busy || missingPrice}>{busy ? 'CONNECTING TO PAYMENT...' : 'CONTINUE TO PAYMENT'}</button>
+        <button className="shop-now" disabled={busy || missingPrice}>{busy ? <><LoaderCircle className="button-spinner" size={17} /> CONNECTING TO PAYMENT...</> : 'CONTINUE TO PAYMENT'}</button>
       </form>
       <aside className="checkout-summary">
         <h2>Your order</h2>
