@@ -44,6 +44,7 @@ export default function Admin() {
       if (data.role !== 'admin') throw new Error('This account does not have admin access');
       localStorage.setItem('des-token', data.token);
       localStorage.setItem('des-role', data.role);
+      window.dispatchEvent(new Event('des-auth-changed'));
       setToken(data.token);
       setError('');
     } catch (err) {

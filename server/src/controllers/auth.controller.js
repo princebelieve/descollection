@@ -22,6 +22,7 @@ const accountResponse = (user) => ({
 
 async function registerUser(req, res) {
   let user;
+  let createdNewUser = false;
   try {
     const name = String(req.body.name || "").trim();
     const email = String(req.body.email || "").trim().toLowerCase();
@@ -30,20 +31,33 @@ async function registerUser(req, res) {
     if (!name || !email || password.length < 8) {
       return res.status(400).json({ message: "Enter your name, a valid email, and a password with at least 8 characters." });
     }
-    if (await User.findOne({ email })) {
+    const token = createRawToken();
+    const existingUser = await User.findOne({ email });
+    if (existingUser && existingUser.emailVerified !== false) {
       return res.status(409).json({ message: "An account with this email already exists. Sign in or reset your password." });
     }
 
-    const token = createRawToken();
-    user = await User.create({
-      name,
-      email,
-      password: await bcrypt.hash(password, 12),
-      role: adminEmails.includes(email) ? "admin" : "user",
-      emailVerified: false,
-      emailVerificationTokenHash: hashToken(token),
-      emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    });
+    const hashedPassword = await bcrypt.hash(password, 12);
+    if (existingUser) {
+      user = existingUser;
+      user.name = name;
+      user.password = hashedPassword;
+      user.role = adminEmails.includes(email) ? "admin" : user.role;
+      user.emailVerificationTokenHash = hashToken(token);
+      user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await user.save();
+    } else {
+      createdNewUser = true;
+      user = await User.create({
+        name,
+        email,
+        password: hashedPassword,
+        role: adminEmails.includes(email) ? "admin" : "user",
+        emailVerified: false,
+        emailVerificationTokenHash: hashToken(token),
+        emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      });
+    }
 
     const link = `${clientUrl()}/account?verify=${encodeURIComponent(token)}`;
     await sendGmailMessage({
@@ -52,9 +66,9 @@ async function registerUser(req, res) {
       text: `Hello ${name},\n\nConfirm your email address to activate your Des-Collection account:\n${link}\n\nThis link expires in 24 hours. If you did not create this account, you can ignore this email.`,
     });
 
-    return res.status(201).json({ message: "Account created. Check your email for a link to confirm your address." });
+    return res.status(createdNewUser ? 201 : 200).json({ message: "Check your email for a new confirmation link to activate your account." });
   } catch (err) {
-    if (user) await User.deleteOne({ _id: user._id }).catch(() => {});
+    if (createdNewUser && user) await User.deleteOne({ _id: user._id }).catch(() => {});
     const status = err.code === 11000 ? 409 : 503;
     return res.status(status).json({
       message: err.code === 11000
@@ -92,7 +106,11 @@ async function loginUser(req, res) {
     if (!user || !user.password || !(await bcrypt.compare(password, user.password))) {
       return res.status(400).json({ message: "Invalid email or password." });
     }
-    if (!user.emailVerified) {
+    if (adminEmails.includes(email)) {
+      user.role = "admin";
+      user.emailVerified = true;
+      await user.save();
+    } else if (!user.emailVerified) {
       return res.status(403).json({ message: "Confirm your email before signing in. Check your inbox for the confirmation link." });
     }
     return res.json(accountResponse(user));
@@ -179,6 +197,7 @@ async function googleSignIn(req, res) {
     } else {
       user.googleId = claims.sub;
       user.emailVerified = true;
+      if (adminEmails.includes(email)) user.role = "admin";
     }
     await user.save();
     return res.json(accountResponse(user));

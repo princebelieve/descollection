@@ -77,7 +77,8 @@ export default function Account() {
             const data = await readResponse(response);
             localStorage.setItem('des-token', data.token);
             localStorage.setItem('des-role', data.role);
-            navigate('/', { replace: true });
+            window.dispatchEvent(new Event('des-auth-changed'));
+            navigate(data.role === 'admin' ? '/admin' : '/', { replace: true });
           } catch (error) {
             setMessage(error.message);
           } finally {
@@ -154,7 +155,8 @@ export default function Account() {
       if (mode === 'login') {
         localStorage.setItem('des-token', data.token);
         localStorage.setItem('des-role', data.role);
-        navigate('/', { replace: true });
+        window.dispatchEvent(new Event('des-auth-changed'));
+        navigate(data.role === 'admin' ? '/admin' : '/', { replace: true });
         return;
       }
       if (mode === 'register') {
@@ -231,7 +233,7 @@ export default function Account() {
       {message && <p className={`account-feedback${/invalid|expired|could not|failed|match/i.test(message) ? ' is-error' : ''}`} role="status">{message}</p>}
 
       {mode === 'forgot' && <p className="account-hint">Enter your account email. If an account exists, we’ll send a password reset link.</p>}
-      {googleClientId && ['login', 'register'].includes(mode) && <div className="google-account-option"><span>or continue with</span><div ref={googleButton} /></div>}
+      {['login', 'register'].includes(mode) && <div className="google-account-option"><span>or continue with</span>{googleClientId ? <div ref={googleButton} /> : <p className="account-hint">Google sign-in is not configured for this deployment. Add VITE_GOOGLE_CLIENT_ID to the client environment and redeploy.</p>}</div>}
       <small className="account-note">Admin access is assigned only to email addresses on the server’s ADMIN_EMAILS allowlist.</small>
     </main>
   );
