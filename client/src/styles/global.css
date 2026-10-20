@@ -480,3 +480,4 @@
 .topbar .logo{width:76px;height:66px}
 .topbar .logo img{filter:drop-shadow(0 2px 3px #0004)}
 @media(max-width:899px){.topbar .logo{width:58px;height:56px}}
+.admin-form{scroll-margin-top:100px}

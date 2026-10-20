@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LoaderCircle } from 'lucide-react';
 import { API, categories } from '../data/catalog';
 import { useStore } from '../context/StoreContext';
@@ -6,6 +6,8 @@ import { imageOf, money } from '../utils/products';
 
 const emptyProduct = { name: '', category: '', price: '', originalPrice: '', description: '' };
 const emptyPost = { title: '', excerpt: '', content: '', published: false };
+const scrollToPageTop = () => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+const scrollToAdminForm = (formRef) => requestAnimationFrame(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
 
 export default function Admin() {
   const { products, setProducts, delivery, setDelivery, notify } = useStore();
@@ -20,6 +22,8 @@ export default function Admin() {
   const [postFile, setPostFile] = useState(null);
   const [editPost, setEditPost] = useState(null);
   const [busyAction, setBusyAction] = useState('');
+  const productFormRef = useRef(null);
+  const postFormRef = useRef(null);
   const auth = { Authorization: `Bearer ${token}` };
 
   useEffect(() => {
@@ -83,6 +87,7 @@ export default function Admin() {
       setEdit(null);
       setError('');
       notify('Product saved');
+      scrollToPageTop();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -118,6 +123,7 @@ export default function Admin() {
       setDelivery(data.deliveryFee);
       localStorage.setItem('des-delivery', String(data.deliveryFee));
       notify('Delivery fee saved');
+      scrollToPageTop();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -140,6 +146,7 @@ export default function Admin() {
       setPosts((current) => editPost ? current.map((post) => post._id === data._id ? data : post) : [data, ...current]);
       setPostForm(emptyPost); setPostFile(null); setEditPost(null); setError('');
       notify(data.published ? 'Blog post published' : 'Draft saved');
+      scrollToPageTop();
     } catch (err) { setError(err.message); }
     finally { setBusyAction(''); }
   };
@@ -174,7 +181,7 @@ export default function Admin() {
     <main className="page admin-page">
       <h1>Admin dashboard</h1>
       <p>Manage live product names, categories, photos, prices and discounts.</p>
-      <form className="admin-form" onSubmit={saveProduct}>
+      <form ref={productFormRef} className="admin-form" onSubmit={saveProduct}>
         <h2>{edit ? 'Edit product' : 'Add product'}</h2>
         <label>Product name<input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
         <label>Category<input required value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} /></label>
@@ -199,6 +206,8 @@ export default function Admin() {
               <button onClick={() => {
                 setEdit(product._id);
                 setForm({ name: product.name, category: product.category, price: product.price, originalPrice: product.originalPrice || '', description: product.description || '' });
+                setFile(null);
+                scrollToAdminForm(productFormRef);
               }}>Edit</button>
               <button disabled={busyAction === `delete-product:${product._id}`} onClick={() => removeProduct(product._id)}>{busyAction === `delete-product:${product._id}` ? 'Deleting…' : 'Delete'}</button>
             </>}
@@ -207,7 +216,7 @@ export default function Admin() {
       </div>
       <label className="delivery-control">Delivery fee (£)<input type="number" min="0" step="0.01" value={delivery} onChange={(event) => { setDelivery(Number(event.target.value)); localStorage.setItem('des-delivery', event.target.value); }} /></label>
       <button className="shop-now" type="button" disabled={busyAction === 'delivery'} onClick={saveDelivery}>{busyAction === 'delivery' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING...</> : 'SAVE DELIVERY FEE'}</button>
-      <form className="admin-form blog-studio" onSubmit={savePost}>
+      <form ref={postFormRef} className="admin-form blog-studio" onSubmit={savePost}>
         <h2>{editPost ? 'Edit article' : 'Blog content studio'}</h2>
         <p>Create articles, save drafts, and publish them to the public blog page.</p>
         <label>Title<input required maxLength="180" value={postForm.title} onChange={(event) => setPostForm({ ...postForm, title: event.target.value })} /></label>
@@ -219,7 +228,7 @@ export default function Admin() {
         <p className="error">{error}</p>
       </form>
       <h2>Blog articles ({posts.length})</h2>
-      <div className="admin-products">{posts.map((post) => <div key={post._id}>{post.image && <img src={post.image} alt="" />}<span>{post.title}<small>{post.published ? 'Published' : 'Draft'} · {new Date(post.createdAt).toLocaleDateString()}</small></span><button onClick={() => { setEditPost(post._id); setPostForm({ title: post.title, excerpt: post.excerpt || '', content: post.content, published: post.published }); setPostFile(null); }}>Edit</button><button disabled={busyAction === `delete-post:${post._id}`} onClick={() => deletePost(post._id)}>{busyAction === `delete-post:${post._id}` ? 'Deleting…' : 'Delete'}</button></div>)}</div>
+      <div className="admin-products">{posts.map((post) => <div key={post._id}>{post.image && <img src={post.image} alt="" />}<span>{post.title}<small>{post.published ? 'Published' : 'Draft'} · {new Date(post.createdAt).toLocaleDateString()}</small></span><button onClick={() => { setEditPost(post._id); setPostForm({ title: post.title, excerpt: post.excerpt || '', content: post.content, published: post.published }); setPostFile(null); scrollToAdminForm(postFormRef); }}>Edit</button><button disabled={busyAction === `delete-post:${post._id}`} onClick={() => deletePost(post._id)}>{busyAction === `delete-post:${post._id}` ? 'Deleting…' : 'Delete'}</button></div>)}</div>
     </main>
   );
 }
@@ -236,6 +245,7 @@ function ImportStarters({ token, onImported }) {
         const catalog = data.products.filter((product) => categories.some((category) => category.toLowerCase() === String(product.category || '').toLowerCase()));
         onImported(catalog);
         localStorage.setItem('des-products', JSON.stringify(catalog));
+        scrollToPageTop();
       } catch (err) {
         alert(err.message);
       } finally {
