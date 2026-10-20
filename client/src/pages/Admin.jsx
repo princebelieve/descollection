@@ -11,6 +11,13 @@ const loadSavedCategories = () => {
   catch { return []; }
 };
 const emptyPost = { title: '', excerpt: '', content: '', published: false };
+const otherCountry = '__other_country__';
+const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
+const nonCountryRegions = new Set(['EU', 'EZ', 'UN', 'QO', 'XA', 'XB']);
+const countryOptions = Array.from({ length: 26 * 26 }, (_, index) => String.fromCharCode(65 + Math.floor(index / 26), 65 + index % 26))
+  .map((code) => ({ code, name: regionNames.of(code) }))
+  .filter(({ code, name }) => name && name !== code && name !== 'Unknown Region' && !nonCountryRegions.has(code))
+  .sort((a, b) => a.name.localeCompare(b.name));
 const scrollToPageTop = () => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
 const scrollToAdminForm = (formRef) => requestAnimationFrame(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
 
@@ -29,6 +36,10 @@ export default function Admin() {
   const [postFile, setPostFile] = useState(null);
   const [editPost, setEditPost] = useState(null);
   const [busyAction, setBusyAction] = useState('');
+  const [shippingZones, setShippingZones] = useState([{ name: 'United Kingdom', countries: ['GB'], fee: delivery }]);
+  const [countrySelection, setCountrySelection] = useState('');
+  const [otherCountryName, setOtherCountryName] = useState('');
+  const specifiedCountry = countryOptions.find(({ name }) => name.toLowerCase() === otherCountryName.trim().toLowerCase());
   const productFormRef = useRef(null);
   const postFormRef = useRef(null);
   const auth = { Authorization: `Bearer ${token}` };
@@ -36,6 +47,9 @@ export default function Admin() {
 
   useEffect(() => {
     if (!token) return;
+    fetch(`${API}/api/settings`).then((response) => response.ok ? response.json() : null).then((data) => {
+      if (data?.shippingZones?.length) setShippingZones(data.shippingZones);
+    }).catch(() => {});
     fetch(`${API}/api/blog/admin`, { headers: { Authorization: `Bearer ${token}` } })
       .then(async (response) => {
         const data = await response.json();
@@ -128,13 +142,14 @@ export default function Admin() {
       const response = await fetch(`${API}/api/settings`, {
         method: 'PUT',
         headers: { ...auth, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deliveryFee: delivery }),
+        body: JSON.stringify({ shippingZones }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Could not save delivery fee');
+      if (!response.ok) throw new Error(data.message || 'Could not save shipping settings');
       setDelivery(data.deliveryFee);
       localStorage.setItem('des-delivery', String(data.deliveryFee));
-      notify('Delivery fee saved');
+      setShippingZones(data.shippingZones);
+      notify('Shipping settings saved');
       scrollToPageTop();
     } catch (err) {
       setError(err.message);
@@ -231,8 +246,25 @@ export default function Admin() {
           </div>
         ))}
       </div>
-      <label className="delivery-control">Delivery fee (£)<input type="number" min="0" step="0.01" value={delivery} onChange={(event) => { setDelivery(Number(event.target.value)); localStorage.setItem('des-delivery', event.target.value); }} /></label>
-      <button className="shop-now" type="button" disabled={busyAction === 'delivery'} onClick={saveDelivery}>{busyAction === 'delivery' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING...</> : 'SAVE DELIVERY FEE'}</button>
+      <section className="delivery-control">
+        <h2>Shipping fees and destinations</h2>
+        <p>Choose the countries included in each shipping zone and set a flat fee for that destination group.</p>
+        {shippingZones.map((zone, index) => <div className="shipping-zone-editor" key={index}>
+          <label>Zone name<input value={zone.name} onChange={(event) => setShippingZones((zones) => zones.map((item, i) => i === index ? { ...item, name: event.target.value } : item))} /></label>
+          <label>Shipping countries<select value={countrySelection} onChange={(event) => {
+            const code = event.target.value;
+            setCountrySelection(code);
+            if (code && code !== otherCountry && !shippingZones.some((item, i) => i !== index && item.countries.includes(code))) setShippingZones((zones) => zones.map((item, i) => i === index ? { ...item, countries: [...item.countries, code] } : item));
+            if (code !== otherCountry) setCountrySelection('');
+          }}><option value="">Add a country</option>{countryOptions.filter(({ code }) => !shippingZones.some((item, i) => i !== index && item.countries.includes(code)) && !zone.countries.includes(code)).map(({ code, name }) => <option key={code} value={code}>{name}</option>)}<option value={otherCountry}>Other (please specify)</option></select></label>
+          {countrySelection === otherCountry && <div className="shipping-other-country"><label>Specify country<input value={otherCountryName} onChange={(event) => setOtherCountryName(event.target.value)} placeholder="Enter a country name" /></label><button type="button" disabled={!specifiedCountry || zone.countries.includes(specifiedCountry.code) || shippingZones.some((item, i) => i !== index && item.countries.includes(specifiedCountry?.code))} onClick={() => { setShippingZones((zones) => zones.map((item, i) => i === index ? { ...item, countries: [...item.countries, specifiedCountry.code] } : item)); setOtherCountryName(''); setCountrySelection(''); }}>ADD COUNTRY</button><small>{otherCountryName && !specifiedCountry ? 'Country not found. Choose a country from the dropdown list.' : 'Enter a country name, then add it to this zone.'}</small></div>}
+          <div className="shipping-country-tags">{zone.countries.map((code) => <span key={code}>{countryOptions.find((country) => country.code === code)?.name || `Other (${code})`}<button type="button" aria-label={`Remove ${code}`} onClick={() => setShippingZones((zones) => zones.map((item, i) => i === index ? { ...item, countries: item.countries.filter((country) => country !== code) } : item))}>×</button></span>)}</div>
+          <label>Shipping fee (£)<input type="number" min="0" step="0.01" value={zone.fee} onChange={(event) => setShippingZones((zones) => zones.map((item, i) => i === index ? { ...item, fee: event.target.value } : item))} /></label>
+          <button type="button" onClick={() => setShippingZones((zones) => zones.filter((_, i) => i !== index))}>Remove zone</button>
+        </div>)}
+        <button type="button" onClick={() => { setShippingZones((zones) => [...zones, { name: '', countries: [], fee: 0 }]); setCountrySelection(''); }}>ADD SHIPPING ZONE</button>
+        <button className="shop-now" type="button" disabled={busyAction === 'delivery'} onClick={saveDelivery}>{busyAction === 'delivery' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING...</> : 'SAVE SHIPPING SETTINGS'}</button>
+      </section>
       <form ref={postFormRef} className="admin-form blog-studio" onSubmit={savePost}>
         <h2>{editPost ? 'Edit article' : 'Blog content studio'}</h2>
         <p>Create articles, save drafts, and publish them to the public blog page.</p>

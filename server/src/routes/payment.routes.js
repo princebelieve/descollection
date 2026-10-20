@@ -9,7 +9,7 @@ const router = express.Router();
 // Cart checkout: prices are always read from MongoDB on the server.
 router.post("/create-cart-session", async (req, res) => {
   try {
-    const { items, customer, uiMode } = req.body;
+    const { items, customer, uiMode, shippingCountry } = req.body;
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: "Your cart is empty" });
     }
@@ -42,7 +42,13 @@ router.post("/create-cart-session", async (req, res) => {
       };
     });
     const settings = await StoreSettings.findOne({ key: "store" });
-    const deliveryFee = settings?.deliveryFee ?? 0;
+    const country = String(shippingCountry || "").toUpperCase();
+    const shippingZones = settings?.shippingZones?.length ? settings.shippingZones : [{ countries: ["GB"], fee: settings?.deliveryFee ?? 0 }];
+    const shippingZone = shippingZones.find((zone) => zone.countries.includes(country));
+    if (!shippingZone) {
+      return res.status(400).json({ message: "We do not currently ship to that country. Choose an available destination." });
+    }
+    const deliveryFee = Number(shippingZone.fee || 0);
     if (deliveryFee > 0) {
       line_items.push({
         price_data: {
@@ -63,7 +69,7 @@ router.post("/create-cart-session", async (req, res) => {
       allow_promotion_codes: true,
       billing_address_collection: "required",
       phone_number_collection: { enabled: true },
-      shipping_address_collection: { allowed_countries: ["GB"] },
+      shipping_address_collection: { allowed_countries: [country] },
       ...(customerEmail ? { customer_email: customerEmail } : {}),
     };
     if (embedded) {

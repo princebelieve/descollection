@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChevronDown, LoaderCircle, LockKeyhole } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import EmbeddedStripeCheckout from '../components/checkout/EmbeddedStripeCheckout';
@@ -9,7 +9,9 @@ import { money } from '../utils/products';
 const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 
 export default function Checkout() {
-  const { cart, delivery } = useStore();
+  const { cart } = useStore();
+  const [shippingZones, setShippingZones] = useState([]);
+  const [shippingCountry, setShippingCountry] = useState('');
   const [customer, setCustomer] = useState({ name: '', email: '' });
   const [login, setLogin] = useState({ email: '', password: '' });
   const [clientSecret, setClientSecret] = useState('');
@@ -19,6 +21,18 @@ export default function Checkout() {
   const [loginMessage, setLoginMessage] = useState('');
   const subtotal = cart.reduce((sum, row) => sum + Number(row.product?.price || 0) * row.qty, 0);
   const missingPrice = cart.some((row) => !(Number(row.product?.price) > 0));
+  const destinations = useMemo(() => shippingZones.flatMap((zone) => zone.countries.map((code) => ({ code, zone }))), [shippingZones]);
+  const selectedDestination = destinations.find(({ code }) => code === shippingCountry);
+  const delivery = Number(selectedDestination?.zone.fee || 0);
+
+  useEffect(() => {
+    fetch(`${API}/api/settings`).then((response) => response.ok ? response.json() : null).then((data) => {
+      if (!data?.shippingZones?.length) return;
+      setShippingZones(data.shippingZones);
+      const countries = data.shippingZones.flatMap((zone) => zone.countries);
+      setShippingCountry((current) => countries.includes(current) ? current : countries.includes('GB') ? 'GB' : countries[0] || '');
+    }).catch(() => {});
+  }, []);
 
   const handleEmbeddedError = useCallback((message) => setError(message), []);
 
@@ -57,6 +71,7 @@ export default function Checkout() {
         body: JSON.stringify({
           items: cart.map(({ id, qty }) => ({ id, qty })),
           customer,
+          shippingCountry,
           uiMode: stripePublishableKey ? 'embedded' : 'hosted',
         }),
       });
@@ -103,8 +118,13 @@ export default function Checkout() {
               </details>
 
               {missingPrice && <p className="checkout-price-note">An item in your basket needs a price before online payment can continue. Please contact us or check back shortly.</p>}
+              <label className="checkout-country">Delivery country<select required value={shippingCountry} onChange={(event) => setShippingCountry(event.target.value)}>
+                <option value="" disabled>Select a delivery country</option>
+                {destinations.map(({ code }) => <option key={code} value={code}>{new Intl.DisplayNames(['en'], { type: 'region' }).of(code)}</option>)}
+              </select></label>
+              {shippingZones.length === 0 && <p className="checkout-price-note">Shipping destinations are temporarily unavailable. Please try again later.</p>}
               {error && <p className="checkout-inline-error" role="alert">{error}</p>}
-              <button className="shop-now checkout-start" type="button" onClick={startPayment} disabled={busy || missingPrice}>
+              <button className="shop-now checkout-start" type="button" onClick={startPayment} disabled={busy || missingPrice || !selectedDestination}>
                 {busy ? <><LoaderCircle className="button-spinner" size={18} /> PREPARING SECURE CHECKOUT...</> : <><LockKeyhole size={17} /> CONTINUE TO PAYMENT</>}
               </button>
               <p className="checkout-secure-note">Secure payment by Stripe. Available payment methods are shown in the payment form.</p>
