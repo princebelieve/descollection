@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LoaderCircle } from 'lucide-react';
 import { API, categories } from '../data/catalog';
 import { useStore } from '../context/StoreContext';
@@ -23,6 +24,15 @@ const scrollToAdminForm = (formRef) => requestAnimationFrame(() => formRef.curre
 
 export default function Admin() {
   const { products, setProducts, delivery, setDelivery, notify } = useStore();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const section = location.pathname.split('/')[2] || 'products';
+  const validSections = ['products', 'product-form', 'shipping', 'blog', 'articles'];
+  const isProducts = section === 'products';
+  const isProductForm = section === 'product-form';
+  const isShipping = section === 'shipping';
+  const isBlogEditor = section === 'blog';
+  const isBlogArticles = section === 'articles';
   const [token, setToken] = useState(localStorage.getItem('des-role') === 'admin' ? localStorage.getItem('des-token') || '' : '');
   const [login, setLogin] = useState({ email: '', password: '' });
   const [form, setForm] = useState(emptyProduct);
@@ -40,13 +50,20 @@ export default function Admin() {
   const [zoneDraft, setZoneDraft] = useState(null);
   const [editingZoneIndex, setEditingZoneIndex] = useState(null);
   const [countrySelection, setCountrySelection] = useState('');
-  const [countrySearch, setCountrySearch] = useState('');
   const [otherCountryName, setOtherCountryName] = useState('');
   const specifiedCountry = countryOptions.find(({ name }) => name.toLowerCase() === otherCountryName.trim().toLowerCase());
   const productFormRef = useRef(null);
   const postFormRef = useRef(null);
   const auth = { Authorization: `Bearer ${token}` };
   const productCategories = [...new Map([...categories.filter((category) => category !== 'Brands' && category !== 'More'), ...savedCategories, ...products.map((product) => product.category)].filter(Boolean).map((category) => [category.trim().toLowerCase(), category.trim()])).values()].sort((a, b) => a.localeCompare(b));
+
+  useEffect(() => {
+    if (location.pathname === '/admin' || !validSections.includes(section)) navigate('/admin/products', { replace: true });
+  }, [location.pathname, navigate, section]);
+
+  useEffect(() => {
+    if (isBlogEditor && editPost) scrollToAdminForm(postFormRef);
+  }, [isBlogEditor, editPost]);
 
   useEffect(() => {
     if (!token) return;
@@ -116,7 +133,7 @@ export default function Admin() {
       setEdit(null);
       setError('');
       notify('Product saved');
-      scrollToPageTop();
+      navigate('/admin/products');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -211,15 +228,18 @@ export default function Admin() {
     <main className="page admin-page admin-dashboard">
       <aside className="admin-side-menu" aria-label="Admin dashboard sections">
         <h2>Admin menu</h2>
-        <a href="#product-management">Add product</a>
-        <a href="#products-list">Products</a>
-        <a href="#shipping-settings">Shipping settings</a>
-        <a href="#blog-editor">Blog editor</a>
-        <a href="#blog-list">Blog articles</a>
+        <Link to="/admin/product-form" aria-current={isProductForm ? 'page' : undefined}>Add product</Link>
+        <Link to="/admin/products" aria-current={isProducts ? 'page' : undefined}>Products</Link>
+        <Link to="/admin/shipping" aria-current={isShipping ? 'page' : undefined}>Shipping settings</Link>
+        <Link to="/admin/blog" aria-current={isBlogEditor ? 'page' : undefined}>Create blog post</Link>
+        <Link to="/admin/articles" aria-current={isBlogArticles ? 'page' : undefined}>Blog articles</Link>
       </aside>
       <div className="admin-dashboard-content">
-      <h1>Admin dashboard</h1>
+      <h1>{isProducts ? 'Products' : isProductForm ? (edit ? 'Edit product' : 'Add product') : isShipping ? 'Shipping settings' : isBlogEditor ? 'Create blog post' : 'Blog articles'}</h1>
+      {(isProducts || isProductForm) && <>
       <p>Manage live product names, categories, photos, prices and discounts.</p>
+      </>}
+      {isProductForm && <>
       <form id="product-management" ref={productFormRef} className="admin-form" onSubmit={saveProduct}>
         <h2>{edit ? 'Edit product' : 'Add product'}</h2>
         <label>Product name<input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
@@ -234,10 +254,12 @@ export default function Admin() {
         <label>Product image<input type="file" accept="image/*" onChange={(event) => setFile(event.target.files?.[0] || null)} /></label>
         <div className="form-actions">
           <button className="shop-now" disabled={busyAction === 'product'}>{busyAction === 'product' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING PRODUCT...</> : 'SAVE PRODUCT'}</button>
-          {edit && <button type="button" onClick={() => { setEdit(null); setForm(emptyProduct); setFile(null); setSpecifyingCategory(false); scrollToPageTop(); }}>Cancel</button>}
+          {edit && <button type="button" onClick={() => { setEdit(null); setForm(emptyProduct); setFile(null); setSpecifyingCategory(false); navigate('/admin/products'); }}>Cancel</button>}
         </div>
         <p className="error">{error}</p>
       </form>
+      </>}
+      {isProducts && <>
       <h2 id="products-list">Products ({products.length})</h2>
       <ImportStarters token={token} onImported={setProducts} />
       <div className="admin-products">
@@ -251,39 +273,37 @@ export default function Admin() {
                 setForm({ name: product.name, category: product.category, price: product.price, originalPrice: product.originalPrice || '', description: product.description || '' });
                 setSpecifyingCategory(false);
                 setFile(null);
-                scrollToAdminForm(productFormRef);
+                navigate('/admin/product-form');
               }}>Edit</button>
               <button disabled={busyAction === `delete-product:${product._id}`} onClick={() => removeProduct(product._id)}>{busyAction === `delete-product:${product._id}` ? 'Deleting…' : 'Delete'}</button>
             </>}
           </div>
         ))}
       </div>
+      </>}
+      {isShipping && <>
       <section id="shipping-settings" className="delivery-control">
         <h2>Shipping fees and destinations</h2>
         <p>Create destination groups and flat fees. Select a zone below to change it.</p>
         {shippingZones.length > 0 ? <div className="shipping-zone-list">{shippingZones.map((zone, index) => <article className="shipping-zone-card" key={`${zone.name}-${index}`}>
           <div><h3>{zone.name}</h3><p>{zone.countries.map((code) => countryOptions.find((country) => country.code === code)?.name || code).join(', ') || 'No countries selected'}</p></div>
           <strong>{money(Number(zone.fee) || 0)}</strong>
-          {!zoneDraft && <div className="shipping-zone-actions"><button type="button" onClick={() => { setZoneDraft({ ...zone, countries: [...zone.countries] }); setEditingZoneIndex(index); setCountrySearch(''); setCountrySelection(''); }}>Edit</button><button type="button" onClick={() => setShippingZones((zones) => zones.filter((_, i) => i !== index))}>Remove</button></div>}
+          {!zoneDraft && <div className="shipping-zone-actions"><button type="button" onClick={() => { setZoneDraft({ ...zone, countries: [...zone.countries] }); setEditingZoneIndex(index); setCountrySelection(''); }}>Edit</button><button type="button" onClick={() => setShippingZones((zones) => zones.filter((_, i) => i !== index))}>Remove</button></div>}
         </article>)}</div> : <p className="shipping-empty">No shipping zones yet. Add a zone to make delivery available.</p>}
-        {!zoneDraft && <button type="button" onClick={() => { setZoneDraft({ name: '', countries: [], fee: 0 }); setEditingZoneIndex(-1); setCountrySearch(''); setCountrySelection(''); }}>ADD SHIPPING ZONE</button>}
+        {!zoneDraft && <button type="button" onClick={() => { setZoneDraft({ name: '', countries: [], fee: 0 }); setEditingZoneIndex(-1); setCountrySelection(''); }}>ADD SHIPPING ZONE</button>}
         {zoneDraft && <div className="shipping-zone-editor">
           <h3>{editingZoneIndex === -1 ? 'Add shipping zone' : `Edit ${zoneDraft.name || 'shipping zone'}`}</h3>
           <label>Zone name<input value={zoneDraft.name} onChange={(event) => setZoneDraft((zone) => ({ ...zone, name: event.target.value }))} placeholder="For example, West Africa" /></label>
-          <label>Search countries<input type="search" value={countrySearch} onChange={(event) => setCountrySearch(event.target.value)} placeholder="Type a country name" /></label>
-          <label>Add destination<select value={countrySelection} onChange={(event) => {
-            const code = event.target.value;
-            setCountrySelection(code);
-            if (code && code !== otherCountry && !zoneDraft.countries.includes(code)) setZoneDraft((zone) => ({ ...zone, countries: [...zone.countries, code] }));
-            if (code !== otherCountry) setCountrySelection('');
-          }}><option value="">Choose a country</option>{countryOptions.filter(({ code, name }) => !zoneDraft.countries.includes(code) && !shippingZones.some((zone, index) => index !== editingZoneIndex && zone.countries.includes(code)) && name.toLowerCase().includes(countrySearch.trim().toLowerCase())).map(({ code, name }) => <option key={code} value={code}>{name}</option>)}<option value={otherCountry}>Other (please specify)</option></select></label>
+          <label>Add destinations<CountryPicker countries={countryOptions.filter(({ code }) => !zoneDraft.countries.includes(code) && !shippingZones.some((zone, index) => index !== editingZoneIndex && zone.countries.includes(code)))} onSelect={(code) => setZoneDraft((zone) => ({ ...zone, countries: [...zone.countries, code] }))} onOther={() => setCountrySelection(otherCountry)} /></label>
           {countrySelection === otherCountry && <div className="shipping-other-country"><label>Specify country<input value={otherCountryName} onChange={(event) => setOtherCountryName(event.target.value)} placeholder="Enter a country name" /></label><button type="button" disabled={!specifiedCountry || zoneDraft.countries.includes(specifiedCountry.code) || shippingZones.some((zone, index) => index !== editingZoneIndex && zone.countries.includes(specifiedCountry?.code))} onClick={() => { setZoneDraft((zone) => ({ ...zone, countries: [...zone.countries, specifiedCountry.code] })); setOtherCountryName(''); setCountrySelection(''); }}>ADD COUNTRY</button><small>{otherCountryName && !specifiedCountry ? 'Country not found. Search and select it above.' : 'Enter a country name, then add it to this zone.'}</small></div>}
           <div className="shipping-country-tags">{zoneDraft.countries.map((code) => <span key={code}>{countryOptions.find((country) => country.code === code)?.name || code}<button type="button" aria-label={`Remove ${code}`} onClick={() => setZoneDraft((zone) => ({ ...zone, countries: zone.countries.filter((country) => country !== code) }))}>×</button></span>)}</div>
           <label>Shipping fee (£)<input type="number" min="0" step="0.01" value={zoneDraft.fee} onChange={(event) => setZoneDraft((zone) => ({ ...zone, fee: event.target.value }))} /></label>
-          <div className="shipping-zone-actions"><button type="button" disabled={!zoneDraft.name.trim() || !zoneDraft.countries.length || !Number.isFinite(Number(zoneDraft.fee)) || Number(zoneDraft.fee) < 0} onClick={() => { setShippingZones((zones) => editingZoneIndex === -1 ? [...zones, { ...zoneDraft, fee: Number(zoneDraft.fee) }] : zones.map((zone, index) => index === editingZoneIndex ? { ...zoneDraft, fee: Number(zoneDraft.fee) } : zone)); setZoneDraft(null); setEditingZoneIndex(null); setCountrySelection(''); setCountrySearch(''); }}>SAVE ZONE</button><button type="button" onClick={() => { setZoneDraft(null); setEditingZoneIndex(null); setCountrySelection(''); }}>CANCEL</button></div>
+          <div className="shipping-zone-actions"><button type="button" disabled={!zoneDraft.name.trim() || !zoneDraft.countries.length || !Number.isFinite(Number(zoneDraft.fee)) || Number(zoneDraft.fee) < 0} onClick={() => { setShippingZones((zones) => editingZoneIndex === -1 ? [...zones, { ...zoneDraft, fee: Number(zoneDraft.fee) }] : zones.map((zone, index) => index === editingZoneIndex ? { ...zoneDraft, fee: Number(zoneDraft.fee) } : zone)); setZoneDraft(null); setEditingZoneIndex(null); setCountrySelection(''); }}>SAVE ZONE</button><button type="button" onClick={() => { setZoneDraft(null); setEditingZoneIndex(null); setCountrySelection(''); }}>CANCEL</button></div>
         </div>}
         <button className="shop-now" type="button" disabled={busyAction === 'delivery' || shippingZones.length === 0 || Boolean(zoneDraft)} onClick={saveDelivery}>{busyAction === 'delivery' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING...</> : 'SAVE SHIPPING SETTINGS'}</button>
       </section>
+      </>}
+      {isBlogEditor && <>
       <form id="blog-editor" ref={postFormRef} className="admin-form blog-studio" onSubmit={savePost}>
         <h2>{editPost ? 'Edit article' : 'Blog content studio'}</h2>
         <p>Create articles, save drafts, and publish them to the public blog page.</p>
@@ -295,6 +315,8 @@ export default function Admin() {
         <div className="form-actions"><button className="shop-now" disabled={busyAction === 'post'}>{busyAction === 'post' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING ARTICLE...</> : 'SAVE ARTICLE'}</button>{editPost && <button type="button" onClick={() => { setEditPost(null); setPostForm(emptyPost); setPostFile(null); scrollToPageTop(); }}>Cancel</button>}</div>
         <p className="error">{error}</p>
       </form>
+      </>}
+      {isBlogArticles && <>
       <h2 id="blog-list">Blog articles ({posts.length})</h2>
       <button className="admin-import" type="button" disabled={busyAction === 'import-blog'} onClick={async () => {
         setBusyAction('import-blog');
@@ -307,7 +329,8 @@ export default function Admin() {
         } catch (err) { setError(err.message); }
         finally { setBusyAction(''); }
       }}>{busyAction === 'import-blog' ? <><LoaderCircle className="button-spinner" size={17} /> IMPORTING ARTICLES...</> : 'IMPORT 20 BEAUTY & HYGIENE ARTICLES'}</button>
-      <div className="admin-products">{posts.map((post) => <div key={post._id}>{post.image && <img src={post.image} alt="" />}<span>{post.title}<small>{post.published ? 'Published' : 'Draft'} · {new Date(post.createdAt).toLocaleDateString()}</small></span><button onClick={() => { setEditPost(post._id); setPostForm({ title: post.title, excerpt: post.excerpt || '', content: post.content, published: post.published }); setPostFile(null); scrollToAdminForm(postFormRef); }}>Edit</button><button disabled={busyAction === `delete-post:${post._id}`} onClick={() => deletePost(post._id)}>{busyAction === `delete-post:${post._id}` ? 'Deleting…' : 'Delete'}</button></div>)}</div>
+      <div className="admin-products">{posts.map((post) => <div key={post._id}>{post.image && <img src={post.image} alt="" />}<span>{post.title}<small>{post.published ? 'Published' : 'Draft'} · {new Date(post.createdAt).toLocaleDateString()}</small></span><button onClick={() => { setEditPost(post._id); setPostForm({ title: post.title, excerpt: post.excerpt || '', content: post.content, published: post.published }); setPostFile(null); navigate('/admin/blog'); }}>Edit</button><button disabled={busyAction === `delete-post:${post._id}`} onClick={() => deletePost(post._id)}>{busyAction === `delete-post:${post._id}` ? 'Deleting…' : 'Delete'}</button></div>)}</div>
+      </>}
       </div>
     </main>
   );
@@ -332,5 +355,27 @@ function ImportStarters({ token, onImported }) {
         setBusy(false);
       }
     }}>{busy ? <><LoaderCircle className="button-spinner" size={17} /> UPDATING CATALOGUE…</> : 'IMPORT STARTERS AND UPDATE PRICES'}</button>
+  );
+}
+
+function CountryPicker({ countries, onSelect, onOther }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const matches = countries.filter((country) => country.name.toLowerCase().includes(query.trim().toLowerCase()));
+
+  return (
+    <div className="country-picker">
+      <button className="country-picker-trigger" type="button" aria-expanded={open} onClick={() => { setOpen((value) => !value); setQuery(''); }}>
+        {open ? 'Country list open' : 'Choose a country'}
+      </button>
+      {open && <div className="country-picker-menu">
+        <input autoFocus type="search" aria-label="Search countries" placeholder="Search countries…" value={query} onChange={(event) => setQuery(event.target.value)} />
+        <div className="country-picker-options" role="listbox" aria-label="Countries">
+          {matches.map(({ code, name }) => <button type="button" role="option" key={code} onClick={() => { onSelect(code); setOpen(false); setQuery(''); }}>{name}</button>)}
+          {matches.length === 0 && <p>No matching countries</p>}
+          <button className="country-picker-other" type="button" onClick={() => { onOther(); setOpen(false); setQuery(''); }}>Other (please specify)</button>
+        </div>
+      </div>}
+    </div>
   );
 }
