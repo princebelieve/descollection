@@ -473,3 +473,5 @@
 .blemish-button{border:1px solid #c9a94e;background:linear-gradient(135deg,#201a0a,#080808 70%);color:#e6c65c;box-shadow:inset 0 1px 0 #fff2}
 .blemish-button:hover{background:linear-gradient(135deg,#3b2d0d,#111 70%);color:#ffe995}
 .blemish-feature>img{border:1px solid #b5953d;box-shadow:0 0 24px #d6b34b1c}
+.home-hero-image-4{animation:home-hero4-drift 9s linear both}
+@keyframes home-hero4-drift{from{transform:translate3d(2%,0,0) scale(1)}to{transform:translate3d(-2%,0,0) scale(.88)}}
