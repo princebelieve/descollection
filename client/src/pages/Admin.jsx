@@ -205,10 +205,19 @@ export default function Admin() {
   }
 
   return (
-    <main className="page admin-page">
+    <main className="page admin-page admin-dashboard">
+      <aside className="admin-side-menu" aria-label="Admin dashboard sections">
+        <h2>Admin menu</h2>
+        <a href="#product-management">Add product</a>
+        <a href="#products-list">Products</a>
+        <a href="#shipping-settings">Shipping settings</a>
+        <a href="#blog-editor">Blog editor</a>
+        <a href="#blog-list">Blog articles</a>
+      </aside>
+      <div className="admin-dashboard-content">
       <h1>Admin dashboard</h1>
       <p>Manage live product names, categories, photos, prices and discounts.</p>
-      <form ref={productFormRef} className="admin-form" onSubmit={saveProduct}>
+      <form id="product-management" ref={productFormRef} className="admin-form" onSubmit={saveProduct}>
         <h2>{edit ? 'Edit product' : 'Add product'}</h2>
         <label>Product name<input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
         <label>Category<select required value={specifyingCategory ? specifyCategory : form.category} onChange={(event) => {
@@ -226,7 +235,7 @@ export default function Admin() {
         </div>
         <p className="error">{error}</p>
       </form>
-      <h2>Products ({products.length})</h2>
+      <h2 id="products-list">Products ({products.length})</h2>
       <ImportStarters token={token} onImported={setProducts} />
       <div className="admin-products">
         {products.map((product) => (
@@ -246,7 +255,7 @@ export default function Admin() {
           </div>
         ))}
       </div>
-      <section className="delivery-control">
+      <section id="shipping-settings" className="delivery-control">
         <h2>Shipping fees and destinations</h2>
         <p>Choose the countries included in each shipping zone and set a flat fee for that destination group.</p>
         {shippingZones.map((zone, index) => <div className="shipping-zone-editor" key={index}>
@@ -265,7 +274,7 @@ export default function Admin() {
         <button type="button" onClick={() => { setShippingZones((zones) => [...zones, { name: '', countries: [], fee: 0 }]); setCountrySelection(''); }}>ADD SHIPPING ZONE</button>
         <button className="shop-now" type="button" disabled={busyAction === 'delivery'} onClick={saveDelivery}>{busyAction === 'delivery' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING...</> : 'SAVE SHIPPING SETTINGS'}</button>
       </section>
-      <form ref={postFormRef} className="admin-form blog-studio" onSubmit={savePost}>
+      <form id="blog-editor" ref={postFormRef} className="admin-form blog-studio" onSubmit={savePost}>
         <h2>{editPost ? 'Edit article' : 'Blog content studio'}</h2>
         <p>Create articles, save drafts, and publish them to the public blog page.</p>
         <label>Title<input required maxLength="180" value={postForm.title} onChange={(event) => setPostForm({ ...postForm, title: event.target.value })} /></label>
@@ -276,7 +285,7 @@ export default function Admin() {
         <div className="form-actions"><button className="shop-now" disabled={busyAction === 'post'}>{busyAction === 'post' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING ARTICLE...</> : 'SAVE ARTICLE'}</button>{editPost && <button type="button" onClick={() => { setEditPost(null); setPostForm(emptyPost); setPostFile(null); scrollToPageTop(); }}>Cancel</button>}</div>
         <p className="error">{error}</p>
       </form>
-      <h2>Blog articles ({posts.length})</h2>
+      <h2 id="blog-list">Blog articles ({posts.length})</h2>
       <button className="admin-import" type="button" disabled={busyAction === 'import-blog'} onClick={async () => {
         setBusyAction('import-blog');
         try {
@@ -289,6 +298,7 @@ export default function Admin() {
         finally { setBusyAction(''); }
       }}>{busyAction === 'import-blog' ? <><LoaderCircle className="button-spinner" size={17} /> IMPORTING ARTICLES...</> : 'IMPORT 20 BEAUTY & HYGIENE ARTICLES'}</button>
       <div className="admin-products">{posts.map((post) => <div key={post._id}>{post.image && <img src={post.image} alt="" />}<span>{post.title}<small>{post.published ? 'Published' : 'Draft'} · {new Date(post.createdAt).toLocaleDateString()}</small></span><button onClick={() => { setEditPost(post._id); setPostForm({ title: post.title, excerpt: post.excerpt || '', content: post.content, published: post.published }); setPostFile(null); scrollToAdminForm(postFormRef); }}>Edit</button><button disabled={busyAction === `delete-post:${post._id}`} onClick={() => deletePost(post._id)}>{busyAction === `delete-post:${post._id}` ? 'Deleting…' : 'Delete'}</button></div>)}</div>
+      </div>
     </main>
   );
 }
