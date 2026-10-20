@@ -24,6 +24,14 @@ const slides = [
     category: 'Body Lotions',
   },
   {
+    image: '/assets/home-hero4.png',
+    eyebrow: 'CARE THAT CELEBRATES YOU',
+    title: 'Feel Confident in Your Skin',
+    description: 'Discover beauty and skincare favourites chosen to help you feel at home in your own style.',
+    action: 'EXPLORE SKINCARE',
+    category: 'Face Cream',
+  },
+  {
     image: '/assets/home-hero1.png',
     eyebrow: 'BEAUTY, STYLE AND MORE',
     title: 'Your Collection Starts Here',
