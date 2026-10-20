@@ -37,7 +37,10 @@ export default function Admin() {
   const [editPost, setEditPost] = useState(null);
   const [busyAction, setBusyAction] = useState('');
   const [shippingZones, setShippingZones] = useState([{ name: 'United Kingdom', countries: ['GB'], fee: delivery }]);
+  const [zoneDraft, setZoneDraft] = useState(null);
+  const [editingZoneIndex, setEditingZoneIndex] = useState(null);
   const [countrySelection, setCountrySelection] = useState('');
+  const [countrySearch, setCountrySearch] = useState('');
   const [otherCountryName, setOtherCountryName] = useState('');
   const specifiedCountry = countryOptions.find(({ name }) => name.toLowerCase() === otherCountryName.trim().toLowerCase());
   const productFormRef = useRef(null);
@@ -257,22 +260,29 @@ export default function Admin() {
       </div>
       <section id="shipping-settings" className="delivery-control">
         <h2>Shipping fees and destinations</h2>
-        <p>Choose the countries included in each shipping zone and set a flat fee for that destination group.</p>
-        {shippingZones.map((zone, index) => <div className="shipping-zone-editor" key={index}>
-          <label>Zone name<input value={zone.name} onChange={(event) => setShippingZones((zones) => zones.map((item, i) => i === index ? { ...item, name: event.target.value } : item))} /></label>
-          <label>Shipping countries<select value={countrySelection} onChange={(event) => {
+        <p>Create destination groups and flat fees. Select a zone below to change it.</p>
+        {shippingZones.length > 0 ? <div className="shipping-zone-list">{shippingZones.map((zone, index) => <article className="shipping-zone-card" key={`${zone.name}-${index}`}>
+          <div><h3>{zone.name}</h3><p>{zone.countries.map((code) => countryOptions.find((country) => country.code === code)?.name || code).join(', ') || 'No countries selected'}</p></div>
+          <strong>{money(Number(zone.fee) || 0)}</strong>
+          {!zoneDraft && <div className="shipping-zone-actions"><button type="button" onClick={() => { setZoneDraft({ ...zone, countries: [...zone.countries] }); setEditingZoneIndex(index); setCountrySearch(''); setCountrySelection(''); }}>Edit</button><button type="button" onClick={() => setShippingZones((zones) => zones.filter((_, i) => i !== index))}>Remove</button></div>}
+        </article>)}</div> : <p className="shipping-empty">No shipping zones yet. Add a zone to make delivery available.</p>}
+        {!zoneDraft && <button type="button" onClick={() => { setZoneDraft({ name: '', countries: [], fee: 0 }); setEditingZoneIndex(-1); setCountrySearch(''); setCountrySelection(''); }}>ADD SHIPPING ZONE</button>}
+        {zoneDraft && <div className="shipping-zone-editor">
+          <h3>{editingZoneIndex === -1 ? 'Add shipping zone' : `Edit ${zoneDraft.name || 'shipping zone'}`}</h3>
+          <label>Zone name<input value={zoneDraft.name} onChange={(event) => setZoneDraft((zone) => ({ ...zone, name: event.target.value }))} placeholder="For example, West Africa" /></label>
+          <label>Search countries<input type="search" value={countrySearch} onChange={(event) => setCountrySearch(event.target.value)} placeholder="Type a country name" /></label>
+          <label>Add destination<select value={countrySelection} onChange={(event) => {
             const code = event.target.value;
             setCountrySelection(code);
-            if (code && code !== otherCountry && !shippingZones.some((item, i) => i !== index && item.countries.includes(code))) setShippingZones((zones) => zones.map((item, i) => i === index ? { ...item, countries: [...item.countries, code] } : item));
+            if (code && code !== otherCountry && !zoneDraft.countries.includes(code)) setZoneDraft((zone) => ({ ...zone, countries: [...zone.countries, code] }));
             if (code !== otherCountry) setCountrySelection('');
-          }}><option value="">Add a country</option>{countryOptions.filter(({ code }) => !shippingZones.some((item, i) => i !== index && item.countries.includes(code)) && !zone.countries.includes(code)).map(({ code, name }) => <option key={code} value={code}>{name}</option>)}<option value={otherCountry}>Other (please specify)</option></select></label>
-          {countrySelection === otherCountry && <div className="shipping-other-country"><label>Specify country<input value={otherCountryName} onChange={(event) => setOtherCountryName(event.target.value)} placeholder="Enter a country name" /></label><button type="button" disabled={!specifiedCountry || zone.countries.includes(specifiedCountry.code) || shippingZones.some((item, i) => i !== index && item.countries.includes(specifiedCountry?.code))} onClick={() => { setShippingZones((zones) => zones.map((item, i) => i === index ? { ...item, countries: [...item.countries, specifiedCountry.code] } : item)); setOtherCountryName(''); setCountrySelection(''); }}>ADD COUNTRY</button><small>{otherCountryName && !specifiedCountry ? 'Country not found. Choose a country from the dropdown list.' : 'Enter a country name, then add it to this zone.'}</small></div>}
-          <div className="shipping-country-tags">{zone.countries.map((code) => <span key={code}>{countryOptions.find((country) => country.code === code)?.name || `Other (${code})`}<button type="button" aria-label={`Remove ${code}`} onClick={() => setShippingZones((zones) => zones.map((item, i) => i === index ? { ...item, countries: item.countries.filter((country) => country !== code) } : item))}>×</button></span>)}</div>
-          <label>Shipping fee (£)<input type="number" min="0" step="0.01" value={zone.fee} onChange={(event) => setShippingZones((zones) => zones.map((item, i) => i === index ? { ...item, fee: event.target.value } : item))} /></label>
-          <button type="button" onClick={() => setShippingZones((zones) => zones.filter((_, i) => i !== index))}>Remove zone</button>
-        </div>)}
-        <button type="button" onClick={() => { setShippingZones((zones) => [...zones, { name: '', countries: [], fee: 0 }]); setCountrySelection(''); }}>ADD SHIPPING ZONE</button>
-        <button className="shop-now" type="button" disabled={busyAction === 'delivery'} onClick={saveDelivery}>{busyAction === 'delivery' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING...</> : 'SAVE SHIPPING SETTINGS'}</button>
+          }}><option value="">Choose a country</option>{countryOptions.filter(({ code, name }) => !zoneDraft.countries.includes(code) && !shippingZones.some((zone, index) => index !== editingZoneIndex && zone.countries.includes(code)) && name.toLowerCase().includes(countrySearch.trim().toLowerCase())).map(({ code, name }) => <option key={code} value={code}>{name}</option>)}<option value={otherCountry}>Other (please specify)</option></select></label>
+          {countrySelection === otherCountry && <div className="shipping-other-country"><label>Specify country<input value={otherCountryName} onChange={(event) => setOtherCountryName(event.target.value)} placeholder="Enter a country name" /></label><button type="button" disabled={!specifiedCountry || zoneDraft.countries.includes(specifiedCountry.code) || shippingZones.some((zone, index) => index !== editingZoneIndex && zone.countries.includes(specifiedCountry?.code))} onClick={() => { setZoneDraft((zone) => ({ ...zone, countries: [...zone.countries, specifiedCountry.code] })); setOtherCountryName(''); setCountrySelection(''); }}>ADD COUNTRY</button><small>{otherCountryName && !specifiedCountry ? 'Country not found. Search and select it above.' : 'Enter a country name, then add it to this zone.'}</small></div>}
+          <div className="shipping-country-tags">{zoneDraft.countries.map((code) => <span key={code}>{countryOptions.find((country) => country.code === code)?.name || code}<button type="button" aria-label={`Remove ${code}`} onClick={() => setZoneDraft((zone) => ({ ...zone, countries: zone.countries.filter((country) => country !== code) }))}>×</button></span>)}</div>
+          <label>Shipping fee (£)<input type="number" min="0" step="0.01" value={zoneDraft.fee} onChange={(event) => setZoneDraft((zone) => ({ ...zone, fee: event.target.value }))} /></label>
+          <div className="shipping-zone-actions"><button type="button" disabled={!zoneDraft.name.trim() || !zoneDraft.countries.length || !Number.isFinite(Number(zoneDraft.fee)) || Number(zoneDraft.fee) < 0} onClick={() => { setShippingZones((zones) => editingZoneIndex === -1 ? [...zones, { ...zoneDraft, fee: Number(zoneDraft.fee) }] : zones.map((zone, index) => index === editingZoneIndex ? { ...zoneDraft, fee: Number(zoneDraft.fee) } : zone)); setZoneDraft(null); setEditingZoneIndex(null); setCountrySelection(''); setCountrySearch(''); }}>SAVE ZONE</button><button type="button" onClick={() => { setZoneDraft(null); setEditingZoneIndex(null); setCountrySelection(''); }}>CANCEL</button></div>
+        </div>}
+        <button className="shop-now" type="button" disabled={busyAction === 'delivery' || shippingZones.length === 0 || Boolean(zoneDraft)} onClick={saveDelivery}>{busyAction === 'delivery' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING...</> : 'SAVE SHIPPING SETTINGS'}</button>
       </section>
       <form id="blog-editor" ref={postFormRef} className="admin-form blog-studio" onSubmit={savePost}>
         <h2>{editPost ? 'Edit article' : 'Blog content studio'}</h2>

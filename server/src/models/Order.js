@@ -8,8 +8,11 @@ const orderSchema = new mongoose.Schema({
   customerEmail: String,
   customerPhone: String,
   deliveryAddress: String,
+  deliveryAddress2: String,
   deliveryCity: String,
+  deliveryState: String,
   deliveryPostcode: String,
+  deliveryCountry: String,
 
   stripeSessionId: {
     type: String,

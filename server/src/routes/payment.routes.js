@@ -89,12 +89,35 @@ router.post("/create-cart-session", async (req, res) => {
 
 router.post("/create-checkout-session", async (req, res) => {
   try {
-    const { productId } = req.body;
+    const { productId, shippingCountry } = req.body;
 
     const product = await Product.findById(productId);
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
+    }
+
+    const settings = await StoreSettings.findOne({ key: "store" });
+    const country = String(shippingCountry || "").toUpperCase();
+    const shippingZones = settings?.shippingZones?.length ? settings.shippingZones : [{ countries: ["GB"], fee: settings?.deliveryFee ?? 0 }];
+    const shippingZone = shippingZones.find((zone) => zone.countries.includes(country));
+    if (!shippingZone) {
+      return res.status(400).json({ message: "We do not currently ship to that country. Choose an available destination." });
+    }
+    const lineItems = [{
+      price_data: {
+        currency: "gbp",
+        product_data: { name: product.name },
+        unit_amount: Math.round(Number(product.price) * 100),
+      },
+      quantity: 1,
+    }];
+    const deliveryFee = Number(shippingZone.fee || 0);
+    if (deliveryFee > 0) {
+      lineItems.push({
+        price_data: { currency: "gbp", product_data: { name: "Delivery" }, unit_amount: Math.round(deliveryFee * 100) },
+        quantity: 1,
+      });
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -104,18 +127,10 @@ router.post("/create-checkout-session", async (req, res) => {
         productId: product._id.toString(),
       },
 
-      line_items: [
-        {
-          price_data: {
-            currency: "gbp",
-            product_data: {
-              name: product.name,
-            },
-            unit_amount: product.price * 100,
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: lineItems,
+      billing_address_collection: "required",
+      phone_number_collection: { enabled: true },
+      shipping_address_collection: { allowed_countries: [country] },
 
       success_url: `${process.env.CLIENT_URL}/success`,
       cancel_url: `${process.env.CLIENT_URL}/cancel`,

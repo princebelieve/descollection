@@ -44,8 +44,11 @@ router.post("/", async (req, res) => {
       customerEmail: customer.email || session.customer_email || "",
       customerPhone: metadata.customerPhone || customer.phone || "",
       deliveryAddress: metadata.deliveryAddress || [address.line1, address.line2].filter(Boolean).join(", "),
+      deliveryAddress2: metadata.deliveryAddress2 || "",
       deliveryCity: metadata.deliveryCity || address.city || "",
+      deliveryState: metadata.deliveryState || address.state || "",
       deliveryPostcode: metadata.deliveryPostcode || address.postal_code || "",
+      deliveryCountry: metadata.deliveryCountry || address.country || "",
       stripeSessionId: session.id,
       amount: Number(session.amount_total || 0) / 100,
     };
