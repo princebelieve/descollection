@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
 import { imageOf, money, productId } from '../../utils/products';
 import AddToCartButton from './AddToCartButton';
+import ShareLinks from '../ShareLinks';
 
 export default function ProductCard({ product }) {
   const { wishlist, toggleWish } = useStore();
@@ -25,6 +26,7 @@ export default function ProductCard({ product }) {
           {isDiscounted && <del>{money(originalPrice)}</del>}{Number(product.price) > 0 ? money(product.price) : 'Price TBC'}
         </strong>
         <AddToCartButton product={product} />
+        <ShareLinks path={`/product/${id}`} title={product.name} compact />
       </div>
     </article>
   );

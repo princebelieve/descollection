@@ -1,6 +1,18 @@
 {
   "rewrites": [
     {
+      "source": "/product/:id",
+      "destination": "/api/preview?type=product&id=:id"
+    },
+    {
+      "source": "/blog/:id",
+      "destination": "/api/preview?type=blog&id=:id"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

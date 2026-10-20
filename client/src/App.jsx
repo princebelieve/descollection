@@ -23,6 +23,7 @@ import FAQ from './pages/FAQ';
 import Home from './pages/Home';
 import ProductDetail from './pages/ProductDetail';
 import Wishlist from './pages/Wishlist';
+import { setPageMetadata } from './utils/seo';
 
 function ShopRoute() {
   const params = new URLSearchParams(location.search);
@@ -39,8 +40,24 @@ function ScrollToTop() {
   return null;
 }
 
+function DefaultPageMetadata() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    if (/^\/(product|blog)\/[^/]+$/.test(pathname)) return;
+    const isHome = pathname === '/';
+    const isBlog = pathname === '/blog';
+    setPageMetadata({
+      title: isHome ? 'Des-Collection | Beauty, Skincare & Lifestyle' : isBlog ? 'Beauty Notes | Des-Collection' : 'Des-Collection',
+      description: isBlog ? 'Thoughtful beauty care, everyday hygiene, and practical product guides from Des-Collection.' : 'Beauty, skincare and lifestyle essentials, selected with care.',
+      image: '/assets/des-collection-logo.png',
+      path: pathname,
+    });
+  }, [pathname]);
+  return null;
+}
+
 export default function App() {
-  return <StoreProvider><ScrollToTop /><StoreHeader /><CartDrawer /><Routes>
+  return <StoreProvider><ScrollToTop /><DefaultPageMetadata /><StoreHeader /><CartDrawer /><Routes>
     <Route path="/" element={<Home />} />
     <Route path="/shop" element={<ShopRoute />} />
     <Route path="/category/:category" element={<CategoryRoute />} />
