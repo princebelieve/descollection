@@ -5,6 +5,11 @@ import { useStore } from '../context/StoreContext';
 import { imageOf, money } from '../utils/products';
 
 const emptyProduct = { name: '', category: '', price: '', originalPrice: '', description: '' };
+const specifyCategory = '__specify_category__';
+const loadSavedCategories = () => {
+  try { return JSON.parse(localStorage.getItem('des-categories') || '[]').filter((category) => typeof category === 'string'); }
+  catch { return []; }
+};
 const emptyPost = { title: '', excerpt: '', content: '', published: false };
 const scrollToPageTop = () => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
 const scrollToAdminForm = (formRef) => requestAnimationFrame(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
@@ -14,6 +19,8 @@ export default function Admin() {
   const [token, setToken] = useState(localStorage.getItem('des-role') === 'admin' ? localStorage.getItem('des-token') || '' : '');
   const [login, setLogin] = useState({ email: '', password: '' });
   const [form, setForm] = useState(emptyProduct);
+  const [specifyingCategory, setSpecifyingCategory] = useState(false);
+  const [savedCategories, setSavedCategories] = useState(loadSavedCategories);
   const [file, setFile] = useState(null);
   const [edit, setEdit] = useState(null);
   const [error, setError] = useState('');
@@ -25,6 +32,7 @@ export default function Admin() {
   const productFormRef = useRef(null);
   const postFormRef = useRef(null);
   const auth = { Authorization: `Bearer ${token}` };
+  const productCategories = [...new Map([...categories.filter((category) => category !== 'Brands' && category !== 'More'), ...savedCategories, ...products.map((product) => product.category)].filter(Boolean).map((category) => [category.trim().toLowerCase(), category.trim()])).values()].sort((a, b) => a.localeCompare(b));
 
   useEffect(() => {
     if (!token) return;
@@ -82,7 +90,11 @@ export default function Admin() {
         : [data, ...products];
       setProducts(nextProducts);
       localStorage.setItem('des-products', JSON.stringify(nextProducts));
+      const nextCategories = [...new Map([...savedCategories, form.category].filter(Boolean).map((category) => [category.trim().toLowerCase(), category.trim()])).values()];
+      setSavedCategories(nextCategories);
+      localStorage.setItem('des-categories', JSON.stringify(nextCategories));
       setForm(emptyProduct);
+      setSpecifyingCategory(false);
       setFile(null);
       setEdit(null);
       setError('');
@@ -184,14 +196,18 @@ export default function Admin() {
       <form ref={productFormRef} className="admin-form" onSubmit={saveProduct}>
         <h2>{edit ? 'Edit product' : 'Add product'}</h2>
         <label>Product name<input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
-        <label>Category<input required value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} /></label>
+        <label>Category<select required value={specifyingCategory ? specifyCategory : form.category} onChange={(event) => {
+          if (event.target.value === specifyCategory) { setSpecifyingCategory(true); setForm({ ...form, category: '' }); }
+          else { setSpecifyingCategory(false); setForm({ ...form, category: event.target.value }); }
+        }}><option value="" disabled>Select a category</option>{productCategories.map((category) => <option key={category} value={category}>{category}</option>)}<option value={specifyCategory}>Please specify</option></select></label>
+        {specifyingCategory && <label>New category<input required autoFocus value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} /></label>}
         <label>Current price (£)<input required type="number" min="0.01" step="0.01" value={form.price} onChange={(event) => setForm({ ...form, price: event.target.value })} /></label>
         <label>Original price (£), if discounted<input type="number" min="0.01" step="0.01" value={form.originalPrice} onChange={(event) => setForm({ ...form, originalPrice: event.target.value })} /></label>
         <label>Description<textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></label>
         <label>Product image<input type="file" accept="image/*" onChange={(event) => setFile(event.target.files?.[0] || null)} /></label>
         <div className="form-actions">
           <button className="shop-now" disabled={busyAction === 'product'}>{busyAction === 'product' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING PRODUCT...</> : 'SAVE PRODUCT'}</button>
-          {edit && <button type="button" onClick={() => { setEdit(null); setForm(emptyProduct); setFile(null); }}>Cancel</button>}
+          {edit && <button type="button" onClick={() => { setEdit(null); setForm(emptyProduct); setFile(null); setSpecifyingCategory(false); }}>Cancel</button>}
         </div>
         <p className="error">{error}</p>
       </form>
@@ -206,6 +222,7 @@ export default function Admin() {
               <button onClick={() => {
                 setEdit(product._id);
                 setForm({ name: product.name, category: product.category, price: product.price, originalPrice: product.originalPrice || '', description: product.description || '' });
+                setSpecifyingCategory(false);
                 setFile(null);
                 scrollToAdminForm(productFormRef);
               }}>Edit</button>
@@ -242,7 +259,7 @@ function ImportStarters({ token, onImported }) {
         const response = await fetch(`${API}/api/products/import-starters`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || 'Could not import starter products');
-        const catalog = data.products.filter((product) => categories.some((category) => category.toLowerCase() === String(product.category || '').toLowerCase()));
+        const catalog = data.products;
         onImported(catalog);
         localStorage.setItem('des-products', JSON.stringify(catalog));
         scrollToPageTop();
