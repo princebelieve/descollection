@@ -125,7 +125,7 @@ function FeaturePromos({ products }) {
         <Link className={`home-product-promo promo-${index + 1}`} to={`/product/${productId(product)}`} key={productId(product)}>
           <img key={productId(product)} className="home-promo-image" src={imageOf(product)} alt={product.name} />
           <span className="home-product-promo-copy">
-            <small>{promoPicks[index]?.eyebrow || 'DES-COLLECTION FAVOURITE'}</small>
+            <small>DES-COLLECTION FAVOURITE</small>
             <strong>{product.name}</strong>
             <span>{product.category || 'Beauty'}{Number(product.price) > 0 ? ` · ${money(product.price)}` : ''}</span>
             <b>SHOP NOW <ArrowRight size={16} aria-hidden="true" /></b>
