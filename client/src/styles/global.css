@@ -475,3 +475,5 @@
 .blemish-feature>img{border:1px solid #b5953d;box-shadow:0 0 24px #d6b34b1c}
 .home-hero-image-4{animation:home-hero4-drift 9s linear both}
 @keyframes home-hero4-drift{from{transform:translate3d(2%,0,0) scale(1)}to{transform:translate3d(-2%,0,0) scale(.88)}}
+.home-hero-image-2{animation:home-hero2-drift 9s linear both}
+@keyframes home-hero2-drift{from{transform:translate3d(2%,0,0) scale(1)}to{transform:translate3d(-2%,0,0) scale(.88)}}

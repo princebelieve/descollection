@@ -83,7 +83,7 @@ function HeroCarousel() {
 
   return (
     <section className="home-hero" aria-label="Des-Collection featured products">
-      <img key={slide.image} className={`home-hero-image${slide.image.endsWith('home-hero4.png') ? ' home-hero-image-4' : ''}`} src={slide.image} alt="" />
+      <img key={slide.image} className={`home-hero-image${slide.image.endsWith('home-hero2.jpeg') ? ' home-hero-image-2' : slide.image.endsWith('home-hero4.png') ? ' home-hero-image-4' : ''}`} src={slide.image} alt="" />
       <div className="home-hero-shade" />
       <div className="home-hero-copy" key={slide.title}>
         <span className="home-hero-brand">DES-COLLECTION</span>
