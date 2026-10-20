@@ -477,3 +477,6 @@
 @keyframes home-hero4-drift{from{transform:translate3d(2%,0,0) scale(1)}to{transform:translate3d(-2%,0,0) scale(.88)}}
 .home-hero-image-2{animation:home-hero2-drift 9s linear both}
 @keyframes home-hero2-drift{from{transform:translate3d(2%,0,0) scale(1)}to{transform:translate3d(-2%,0,0) scale(.88)}}
+.topbar .logo{width:76px;height:66px}
+.topbar .logo img{filter:drop-shadow(0 2px 3px #0004)}
+@media(max-width:899px){.topbar .logo{width:58px;height:56px}}
