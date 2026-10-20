@@ -207,7 +207,7 @@ export default function Admin() {
         <label>Product image<input type="file" accept="image/*" onChange={(event) => setFile(event.target.files?.[0] || null)} /></label>
         <div className="form-actions">
           <button className="shop-now" disabled={busyAction === 'product'}>{busyAction === 'product' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING PRODUCT...</> : 'SAVE PRODUCT'}</button>
-          {edit && <button type="button" onClick={() => { setEdit(null); setForm(emptyProduct); setFile(null); setSpecifyingCategory(false); }}>Cancel</button>}
+          {edit && <button type="button" onClick={() => { setEdit(null); setForm(emptyProduct); setFile(null); setSpecifyingCategory(false); scrollToPageTop(); }}>Cancel</button>}
         </div>
         <p className="error">{error}</p>
       </form>
@@ -241,7 +241,7 @@ export default function Admin() {
         <label>Article content<textarea required rows="12" value={postForm.content} onChange={(event) => setPostForm({ ...postForm, content: event.target.value })} /></label>
         <label>Cover image<input type="file" accept="image/*" onChange={(event) => setPostFile(event.target.files?.[0] || null)} /></label>
         <label className="blog-publish"><input type="checkbox" checked={postForm.published} onChange={(event) => setPostForm({ ...postForm, published: event.target.checked })} /> Publish on the blog</label>
-        <div className="form-actions"><button className="shop-now" disabled={busyAction === 'post'}>{busyAction === 'post' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING ARTICLE...</> : 'SAVE ARTICLE'}</button>{editPost && <button type="button" onClick={() => { setEditPost(null); setPostForm(emptyPost); setPostFile(null); }}>Cancel</button>}</div>
+        <div className="form-actions"><button className="shop-now" disabled={busyAction === 'post'}>{busyAction === 'post' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING ARTICLE...</> : 'SAVE ARTICLE'}</button>{editPost && <button type="button" onClick={() => { setEditPost(null); setPostForm(emptyPost); setPostFile(null); scrollToPageTop(); }}>Cancel</button>}</div>
         <p className="error">{error}</p>
       </form>
       <h2>Blog articles ({posts.length})</h2>
