@@ -30,7 +30,7 @@ export default function About() {
 
       <section className="about-collection">
         <div className="about-image-wrap">
-          <img src="/assets/about-image.png" alt="A woman enjoying her skincare routine" />
+          <img src="/assets/about-image.jpeg" alt="Gold satin texture representing the Des-Collection brand" />
           <span>DES-COLLECTION · YOUR STYLE, YOUR CHOICE</span>
         </div>
         <div className="about-collection-copy">

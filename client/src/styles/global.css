@@ -439,3 +439,30 @@
 @media(hover:hover) and (pointer:fine){.product-detail-image:hover img{transform:scale(1.35)}}
 @media(max-width:899px){.product-detail-image{height:330px}}
 @media(max-width:420px){.product-detail-image{height:300px}}
+
+/* Metallic gold replaces the plum brand accent throughout the storefront. */
+:root{--plum:#98721b;--plum-dark:#70500b;--gold-metal:linear-gradient(110deg,#76540a 0%,#b88e22 18%,#f1dc83 34%,#a77b14 50%,#dfbd50 68%,#745208 84%,#c6a03c 100%)}
+.head-icon i{background:linear-gradient(145deg,#f0dc8b,#98721b 55%,#6f500d)}
+.account-page input:focus,.admin-page input:focus,.admin-page textarea:focus,.checkout-form input:focus{border-color:#b58b25;box-shadow:0 0 0 3px #c4a33b33}
+.shop-now,.add-cart,.cart-drawer-action,.checkout-signin-submit,.checkout-embed-error button,.drawer-account-link,.about-shop-link,.about-cta>a{background:var(--gold-metal);background-size:220% 100%;background-position:0 50%;color:#211b08;border-color:#a98018;text-shadow:0 1px 0 #fff5;transition:background-position .3s ease,filter .2s ease,transform .2s ease}
+.shop-now:hover,.add-cart:hover,.cart-drawer-action:hover,.checkout-signin-submit:hover,.checkout-embed-error button:hover,.drawer-account-link:hover,.about-shop-link:hover,.about-cta>a:hover{background:var(--gold-metal);background-size:220% 100%;background-position:100% 50%;color:#211b08;filter:brightness(1.04)}
+.add-cart-feedback.is-added{background:var(--gold-metal);color:#211b08}
+.contact-page{max-width:1000px;min-height:70vh;margin:0 auto;padding:74px 28px 100px}
+.contact-card{max-width:780px;margin:0 auto;padding:clamp(28px,6vw,58px);border:1px solid #e9e2d1;border-radius:16px;background:linear-gradient(145deg,#fff 0%,#fffdf8 100%);box-shadow:0 18px 50px #49390f0c}
+.contact-logo{display:block;width:88px;height:88px;object-fit:contain;margin:0 auto 25px}
+.contact-card>.kicker{text-align:center;margin:0 0 12px;color:#98721b}
+.contact-card h1{margin:0;text-align:center;font-size:clamp(34px,6vw,52px);font-weight:400;letter-spacing:-.045em}
+.contact-intro{max-width:540px;margin:17px auto 36px;text-align:center;color:#716d67;font-size:16px;line-height:1.75}
+.contact-options{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.contact-option{display:flex;align-items:flex-start;gap:14px;min-width:0;padding:18px;border:1px solid #eee9dd;border-radius:10px;background:#fff}
+.contact-option-icon{display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:50%;background:#f7f0dc;color:#8d6915}
+.contact-option h2{margin:1px 0 7px;font-size:13px;font-weight:600;color:#605a50}
+.contact-option a{color:#312d27;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.contact-option a:hover{color:#8d6915;text-decoration:underline;text-underline-offset:3px}
+.contact-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin:30px 0 0}
+.contact-button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:46px;padding:0 18px;border:1px solid #a98018;border-radius:6px;font-size:13px;font-weight:600;transition:filter .2s ease,transform .2s ease}
+.contact-button:hover{filter:brightness(1.04);transform:translateY(-1px)}
+.contact-button-primary{background:var(--gold-metal);background-size:220% 100%;color:#211b08}
+.contact-button-secondary{background:#fff;color:#5e4917}
+.contact-site{margin:27px 0 0;text-align:center;color:#9b958a;font-size:12px;letter-spacing:.08em}
+@media(max-width:600px){.contact-page{padding:42px 16px 72px}.contact-card{padding:28px 19px;border-radius:12px}.contact-logo{width:76px;height:76px}.contact-intro{margin-bottom:27px;font-size:15px}.contact-options{grid-template-columns:1fr;gap:10px}.contact-option{padding:15px}.contact-actions{align-items:stretch;flex-direction:column}.contact-button{width:100%}}

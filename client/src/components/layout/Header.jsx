@@ -57,7 +57,7 @@ export default function Header() {
           <button className="head-icon hamburger" onClick={() => { setDrawer(true); setTab('categories'); }} aria-label="Open navigation"><Menu /></button>
           <button className="head-icon compare" onClick={() => nav('/compare')} title="Compare"><Scale /><i>{compare.length}</i></button>
         </div>
-        <Link className="logo" to="/"><img src="/logo.png" alt="Des-Collection" /></Link>
+        <Link className="logo" to="/"><img src="/assets/des-collection-logo.png" alt="Des-Collection" /></Link>
         <div className="header-group header-group-right">
           <button className="head-icon cart-head" onClick={() => nav('/cart')} aria-label={`Cart, ${cartCount} items`}><CartIcon /><i>{cartCount}</i></button>
           <Link className="account-head" to={role === 'admin' ? '/admin' : '/account'} aria-label={role === 'admin' ? 'Admin dashboard' : role ? 'My account' : 'Sign in or sign up'}><UserRound /><span>{role === 'admin' ? 'Admin dashboard' : role ? 'My account' : 'Sign in / Sign up'}</span></Link>

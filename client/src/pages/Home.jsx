@@ -8,7 +8,7 @@ import { imageOf, money, productId } from '../utils/products';
 
 const slides = [
   {
-    image: '/assets/home-hero2.png',
+    image: '/assets/home-hero2.jpeg',
     eyebrow: 'YOUR STYLE, YOUR BEAUTY, YOUR COLLECTION',
     title: 'Beauty for Your Everyday',
     description: 'Explore beauty essentials selected to help you express your style and feel confident in your own way.',
@@ -16,20 +16,12 @@ const slides = [
     category: 'Face Cream',
   },
   {
-    image: '/assets/home-hero3.png',
+    image: '/assets/home-hero3.jpeg',
     eyebrow: 'CARE THAT FITS YOUR ROUTINE',
     title: 'Everyday Beauty Essentials',
     description: 'Find lotions, creams and oils to make your daily beauty routine feel like your own.',
     action: 'EXPLORE BODY CARE',
     category: 'Body Lotions',
-  },
-  {
-    image: '/assets/home-hero4.png',
-    eyebrow: 'A COLLECTION THAT FEELS LIKE YOU',
-    title: 'Make Your Look Your Own',
-    description: 'From beauty favourites to the finishing touches, discover pieces that bring your personal style together.',
-    action: 'EXPLORE THE COLLECTION',
-    category: 'Creams',
   },
   {
     image: '/assets/home-hero1.png',
