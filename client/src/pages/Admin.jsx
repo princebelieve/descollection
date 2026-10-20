@@ -245,6 +245,17 @@ export default function Admin() {
         <p className="error">{error}</p>
       </form>
       <h2>Blog articles ({posts.length})</h2>
+      <button className="admin-import" type="button" disabled={busyAction === 'import-blog'} onClick={async () => {
+        setBusyAction('import-blog');
+        try {
+          const response = await fetch(`${API}/api/blog/import-beauty-guides`, { method: 'POST', headers: auth });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.message || 'Could not import beauty guides');
+          if (data.posts?.length) setPosts((current) => [...data.posts, ...current]);
+          notify(data.imported ? `Imported ${data.imported} articles${data.skipped ? `; ${data.skipped} already existed` : ''}` : 'All 20 articles are already imported');
+        } catch (err) { setError(err.message); }
+        finally { setBusyAction(''); }
+      }}>{busyAction === 'import-blog' ? <><LoaderCircle className="button-spinner" size={17} /> IMPORTING ARTICLES...</> : 'IMPORT 20 BEAUTY & HYGIENE ARTICLES'}</button>
       <div className="admin-products">{posts.map((post) => <div key={post._id}>{post.image && <img src={post.image} alt="" />}<span>{post.title}<small>{post.published ? 'Published' : 'Draft'} · {new Date(post.createdAt).toLocaleDateString()}</small></span><button onClick={() => { setEditPost(post._id); setPostForm({ title: post.title, excerpt: post.excerpt || '', content: post.content, published: post.published }); setPostFile(null); scrollToAdminForm(postFormRef); }}>Edit</button><button disabled={busyAction === `delete-post:${post._id}`} onClick={() => deletePost(post._id)}>{busyAction === `delete-post:${post._id}` ? 'Deleting…' : 'Delete'}</button></div>)}</div>
     </main>
   );

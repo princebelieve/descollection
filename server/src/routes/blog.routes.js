@@ -3,6 +3,7 @@ const BlogPost = require("../models/BlogPost");
 const upload = require("../middleware/upload");
 const { uploadToR2 } = require("../config/r2");
 const { protect, adminOnly } = require("../middleware/auth");
+const beautyArticles = require("../data/beautyArticles");
 
 const router = express.Router();
 
@@ -19,6 +20,20 @@ router.get("/admin", protect, adminOnly, async (_req, res) => {
     res.json(await BlogPost.find().sort({ createdAt: -1 }));
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+});
+
+router.post("/import-beauty-guides", protect, adminOnly, async (_req, res) => {
+  try {
+    const existing = await BlogPost.find({}, { title: 1 }).lean();
+    const titles = new Set(existing.map((post) => post.title.trim().toLowerCase()));
+    const newArticles = beautyArticles.filter((article) => !titles.has(article.title.toLowerCase()));
+    const posts = newArticles.length
+      ? await BlogPost.insertMany(newArticles.map((article) => ({ ...article, published: true })))
+      : [];
+    res.status(201).json({ imported: posts.length, skipped: beautyArticles.length - posts.length, posts });
+  } catch (err) {
+    res.status(500).json({ message: err.message || "Could not import beauty guides" });
   }
 });
 

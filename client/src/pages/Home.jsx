@@ -41,11 +41,6 @@ const slides = [
   },
 ];
 
-const promoPicks = [
-  { match: 'Jhalak 24K Gold Collagen Body Lotion', eyebrow: 'NOURISH YOUR ROUTINE', fallback: 0 },
-  { match: 'Effimax Q10 Papaya Facial Cream', eyebrow: 'A DAILY SKINCARE FAVOURITE', fallback: 1 },
-];
-
 const editorPicks = [
   'Effimax Q10 Concentrated Clarifying',
   'Jhalak Vitamin C Face Cream Set',
@@ -109,14 +104,26 @@ function HeroCarousel() {
 }
 
 function FeaturePromos({ products }) {
-  const picks = promoPicks.map(({ match, fallback }) => matchingProduct(products, match) || products[fallback] || starter[fallback]).filter(Boolean);
-  const uniquePicks = picks.filter((product, index) => picks.findIndex((candidate) => productId(candidate) === productId(product)) === index);
+  const availableProducts = products.length ? products : starter;
+  const [firstIndex, setFirstIndex] = useState(0);
+  const currentIndex = firstIndex % availableProducts.length;
+
+  useEffect(() => {
+    if (availableProducts.length < 2) return undefined;
+    const isLastPair = currentIndex >= availableProducts.length - 2;
+    const timer = window.setTimeout(() => setFirstIndex(isLastPair ? 0 : currentIndex + 1), isLastPair ? 30000 : 20000);
+    return () => window.clearTimeout(timer);
+  }, [availableProducts.length, currentIndex]);
+
+  const uniquePicks = availableProducts.length === 1
+    ? [availableProducts[0]]
+    : [availableProducts[currentIndex], availableProducts[(currentIndex + 1) % availableProducts.length]];
 
   return (
     <section className="home-promo-pair" aria-label="Featured products">
       {uniquePicks.map((product, index) => (
         <Link className={`home-product-promo promo-${index + 1}`} to={`/product/${productId(product)}`} key={productId(product)}>
-          <img src={imageOf(product)} alt={product.name} />
+          <img key={productId(product)} className="home-promo-image" src={imageOf(product)} alt={product.name} />
           <span className="home-product-promo-copy">
             <small>{promoPicks[index]?.eyebrow || 'DES-COLLECTION FAVOURITE'}</small>
             <strong>{product.name}</strong>

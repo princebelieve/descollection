@@ -31,7 +31,7 @@ export default function Blog() {
   </main>;
 
   return <main className="page blog-page">
-    <p className="kicker">FROM DES-COLLECTION</p><h1>Beauty notes</h1>
+    <header className="blog-hero"><p>FROM DES-COLLECTION</p><h1>Beauty notes</h1><span>Thoughtful care, everyday rituals, and practical guides for feeling good in your skin.</span></header>
     <p className="blog-intro">Ideas, product guides and updates from the Des-Collection team.</p>
     {error ? <p>{error}</p> : posts.length ? <div className="blog-grid">{posts.map((article) => <article className="blog-card" key={article._id}>
       <Link to={`/blog/${article._id}`}>
