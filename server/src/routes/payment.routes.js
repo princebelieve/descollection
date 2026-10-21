@@ -6,6 +6,36 @@ const StoreSettings = require("../models/StoreSettings");
 
 const router = express.Router();
 
+// The result page uses this to verify the payment directly with Stripe before
+// it tells the customer that an order was paid.
+router.get("/session-status/:sessionId", async (req, res) => {
+  const { sessionId } = req.params;
+  if (!/^cs_(test|live)_[A-Za-z0-9]+$/.test(sessionId)) {
+    return res.status(400).json({ message: "Invalid checkout session" });
+  }
+  try {
+    const session = await stripe.checkout.sessions.retrieve(sessionId, { expand: ["payment_intent"] });
+    const intent = session.payment_intent && typeof session.payment_intent === "object" ? session.payment_intent : null;
+    const paid = session.payment_status === "paid" || session.payment_status === "no_payment_required";
+    const status = paid
+      ? "paid"
+      : intent?.status === "requires_payment_method" || session.status === "expired"
+        ? "failed"
+        : session.status === "open"
+          ? "open"
+          : "pending";
+    return res.json({
+      status,
+      sessionId: session.id,
+      amountTotal: session.amount_total,
+      currency: session.currency,
+      customerEmail: session.customer_details?.email || session.customer_email || "",
+    });
+  } catch (error) {
+    return res.status(error.statusCode === 404 ? 404 : 502).json({ message: "We could not verify this payment with Stripe." });
+  }
+});
+
 // Cart checkout: prices are always read from MongoDB on the server.
 router.post("/create-cart-session", async (req, res) => {
   try {
@@ -77,7 +107,7 @@ router.post("/create-cart-session", async (req, res) => {
       sessionOptions.redirect_on_completion = "always";
       sessionOptions.return_url = `${process.env.CLIENT_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
     } else {
-      sessionOptions.success_url = `${process.env.CLIENT_URL}/checkout/success`;
+      sessionOptions.success_url = `${process.env.CLIENT_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
       sessionOptions.cancel_url = `${process.env.CLIENT_URL}/checkout/cancelled`;
     }
     const session = await stripe.checkout.sessions.create(sessionOptions);
