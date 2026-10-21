@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChevronDown, LoaderCircle, LockKeyhole } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import EmbeddedStripeCheckout from '../components/checkout/EmbeddedStripeCheckout';
+import PasswordInput from '../components/PasswordInput';
 import { API } from '../data/catalog';
 import { useStore } from '../context/StoreContext';
 import { money } from '../utils/products';
@@ -159,11 +160,11 @@ export default function Checkout() {
                 <summary>Already have an account? <strong>Sign in (optional)</strong><ChevronDown size={19} /></summary>
                 <form className="checkout-signin-form" onSubmit={signIn}>
                   <label>Email address<input type="email" autoComplete="email" required value={login.email} onChange={(event) => setLogin({ ...login, email: event.target.value })} /></label>
-                  <label>Password<input type="password" autoComplete="current-password" required value={login.password} onChange={(event) => setLogin({ ...login, password: event.target.value })} /></label>
+                  <label>Password<PasswordInput autoComplete="current-password" required value={login.password} onChange={(event) => setLogin({ ...login, password: event.target.value })} /></label>
                   <button className="checkout-signin-submit" disabled={signingIn}>{signingIn ? <><LoaderCircle className="button-spinner" size={17} /> SIGNING IN...</> : 'SIGN IN'}</button>
                   {loginMessage && <p className={loginMessage.startsWith('Signed in') ? 'checkout-inline-success' : 'checkout-inline-error'} role="status">{loginMessage}</p>}
                 </form>
-                <p className="checkout-account-link"><Link to="/account?returnTo=%2Fcheckout">Sign in or register with Google</Link></p>
+                <p className="checkout-account-link"><Link to="/sign-in?returnTo=%2Fcheckout">Sign in</Link> or <Link to="/sign-up?returnTo=%2Fcheckout">Create an account</Link></p>
               </details>}
               {authNotice && <p className="checkout-country-status" role="status">{authNotice}</p>}
               </>}

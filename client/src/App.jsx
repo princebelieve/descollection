@@ -74,6 +74,8 @@ export default function App() {
     <Route path="/wishlist" element={<Wishlist />} />
     <Route path="/compare" element={<Compare />} />
     <Route path="/account" element={<Account />} />
+    <Route path="/sign-in" element={<Account />} />
+    <Route path="/sign-up" element={<Account />} />
     <Route path="/admin/*" element={<Admin />} />
     <Route path="/checkout/success" element={<CheckoutResult success />} />
     <Route path="/checkout/cancelled" element={<CheckoutResult success={false} />} />

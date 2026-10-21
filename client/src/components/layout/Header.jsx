@@ -81,7 +81,8 @@ export default function Header() {
         <Link className="logo" to="/" aria-label="Des Collection LTD home"><img src="/assets/des-collection-logo.png" alt="Des Collection LTD" /><span>Des Collection LTD</span><small>-Online Collection-</small></Link>
         <div className="header-group header-group-right">
           <button className="head-icon cart-head" onClick={() => nav('/cart')} aria-label={`Cart, ${cartCount} items`}><CartIcon /><i>{cartCount}</i></button>
-          <Link className="account-head" to={role === 'admin' ? '/admin' : '/account'} aria-label={role === 'admin' ? 'Admin dashboard' : role ? 'My account' : 'Sign in or sign up'}><UserRound /><span>{role === 'admin' ? 'Admin dashboard' : role ? 'My account' : 'Sign in / Sign up'}</span></Link>
+          <Link className="account-head" to={role === 'admin' ? '/admin' : role ? '/account' : '/sign-in'} aria-label={role === 'admin' ? 'Admin dashboard' : role ? 'My account' : 'Sign in'}><UserRound /><span>{role === 'admin' ? 'Admin dashboard' : role ? 'My account' : 'Sign in'}</span></Link>
+          {!role && <Link className="signup-head" to="/sign-up">Sign up</Link>}
           {role && <button className="signout-head" type="button" onClick={signOut}><LogOut size={17} /><span>Sign out</span></button>}
           <button className="search-open" onClick={() => setSearch((open) => !open)} aria-expanded={search}><Search /><b>Search</b></button>
         </div>
@@ -102,7 +103,8 @@ export default function Header() {
                 ? categories.map((category) => <Link key={category} to={category === 'Brands' ? '/brands' : `/category/${encodeURIComponent(category)}`} onClick={() => setDrawer(false)}>{category.toUpperCase()}</Link>)
                 : <>{menuItems.map(([label, path]) => <Link key={path} to={path} onClick={() => setDrawer(false)}>{label}</Link>)}{role === 'admin' && <Link to="/admin" onClick={() => setDrawer(false)}>Admin dashboard</Link>}</>}
             </div>
-            {role ? <button className="drawer-account-link" type="button" onClick={signOut}><LogOut size={21} />Sign out</button> : <Link className="drawer-account-link" to="/account" onClick={() => setDrawer(false)}><UserRound size={21} />Sign in or create an account</Link>}
+            {role ? <button className="drawer-account-link" type="button" onClick={signOut}><LogOut size={21} />Sign out</button> : <Link className="drawer-account-link" to="/sign-in" onClick={() => setDrawer(false)}><UserRound size={21} />Sign in</Link>}
+            {!role && <Link className="drawer-account-link" to="/sign-up" onClick={() => setDrawer(false)}><UserRound size={21} />Create an account</Link>}
           </aside>
         </div>
       )}
@@ -118,7 +120,7 @@ function BottomNav({ cartCount, wishCount, role }) {
       <NavLink to="/shop"><span><Store /></span>Shop</NavLink>
       <NavLink to="/wishlist"><span><Heart />{wishCount > 0 && <i>{wishCount}</i>}</span>Wishlist</NavLink>
       <NavLink to="/cart"><span><CartIcon />{cartCount > 0 && <i>{cartCount}</i>}</span>Cart</NavLink>
-      <NavLink to={role === 'admin' ? '/admin' : '/account'}><span><UserRound /></span>{role === 'admin' ? 'Admin' : role ? 'Account' : 'Sign in'}</NavLink>
+      <NavLink to={role === 'admin' ? '/admin' : role ? '/account' : '/sign-in'}><span><UserRound /></span>{role === 'admin' ? 'Admin' : role ? 'Account' : 'Sign in'}</NavLink>
     </nav>
   );
 }

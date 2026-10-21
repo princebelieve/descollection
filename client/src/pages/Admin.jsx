@@ -4,6 +4,7 @@ import { LoaderCircle } from 'lucide-react';
 import { API, categories } from '../data/catalog';
 import { useStore } from '../context/StoreContext';
 import { imageOf, money } from '../utils/products';
+import PasswordInput from '../components/PasswordInput';
 
 const emptyProduct = { name: '', category: '', price: '', originalPrice: '', description: '' };
 const specifyCategory = '__specify_category__';
@@ -242,7 +243,7 @@ export default function Admin() {
         <p>Sign in with an admin account to manage the live catalogue.</p>
         <form onSubmit={loginAdmin}>
           <label>Email<input type="email" required value={login.email} onChange={(event) => setLogin({ ...login, email: event.target.value })} /></label>
-          <label>Password<input type="password" required value={login.password} onChange={(event) => setLogin({ ...login, password: event.target.value })} /></label>
+          <label>Password<PasswordInput autoComplete="current-password" required value={login.password} onChange={(event) => setLogin({ ...login, password: event.target.value })} /></label>
           <button className="shop-now" disabled={busyAction === 'login'}>{busyAction === 'login' ? <><LoaderCircle className="button-spinner" size={17} /> SIGNING IN...</> : 'SIGN IN'}</button>
           <p className="error">{error}</p>
         </form>

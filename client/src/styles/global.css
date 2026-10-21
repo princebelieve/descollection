@@ -606,3 +606,13 @@
 
 /* Match the lockup text to the metallic gold in the D mark. */
 .topbar .logo span,.topbar .logo small,.store-footer-brand-name,.store-footer-tagline{background:linear-gradient(100deg,#a97912 0%,#e4bd45 24%,#fff0a6 44%,#c99722 64%,#f4d76b 82%,#a97912 100%);background-clip:text;-webkit-background-clip:text;color:transparent}
+
+/* Keep the password toggle above the field and aligned with visibility state. */
+.password-input-row{position:relative;display:block;width:100%}
+.password-input-row input{display:block;width:100%;min-height:52px;padding-right:60px}
+.password-visibility{position:absolute;z-index:3;top:50%;right:6px;transform:translateY(-50%);display:grid;place-items:center;width:42px;height:42px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--plum);cursor:pointer}
+.password-visibility:hover{background:#f7f3f5}
+.password-visibility:focus-visible{outline:2px solid var(--plum);outline-offset:1px}
+@media(max-width:520px){.password-visibility{width:40px;height:40px}}
+
+.account-route-prompt{margin:16px 0 0;color:#777;font-size:14px}.account-route-prompt a,.signup-head{color:#d4af37;font-weight:700;text-decoration:underline;text-underline-offset:3px}.signup-head{font-size:13px;white-space:nowrap}@media(max-width:899px){.signup-head{display:none}}

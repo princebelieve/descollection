@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Check, CircleCheck, Eye, EyeOff, LoaderCircle } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Check, CircleCheck, LoaderCircle } from 'lucide-react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import AccountModal from '../components/AccountModal';
+import PasswordInput from '../components/PasswordInput';
 import { API } from '../data/catalog';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -13,28 +14,22 @@ async function readResponse(response) {
   return data;
 }
 
-function PasswordField({ label, value, onChange, autoComplete, show, onToggle, required = true }) {
+function PasswordField({ label, value, onChange, autoComplete, required = true }) {
   return (
     <label className="account-field">
       {label}
-      <span className="password-input-row">
-        <button className="password-visibility" type="button" onClick={onToggle} aria-label={show ? 'Hide password' : 'Show password'} title={show ? 'Hide password' : 'Show password'}>
-          {show ? <EyeOff size={20} /> : <Eye size={20} />}
-        </button>
-        <input type={show ? 'text' : 'password'} required={required} minLength={autoComplete === 'current-password' ? undefined : 8} autoComplete={autoComplete} value={value} onChange={onChange} />
-      </span>
+      <PasswordInput autoComplete={autoComplete} required={required} minLength={autoComplete === 'current-password' ? undefined : 8} value={value} onChange={onChange} />
     </label>
   );
 }
 
 export default function Account() {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const googleButton = useRef(null);
-  const [mode, setMode] = useState(searchParams.has('reset') ? 'reset' : 'login');
+  const [mode, setMode] = useState(searchParams.has('reset') ? 'reset' : location.pathname === '/sign-up' ? 'register' : 'login');
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
   const [modal, setModal] = useState(() => {
     if (searchParams.has('verified')) return {
       eyebrow: 'EMAIL CONFIRMED',
@@ -52,6 +47,10 @@ export default function Account() {
   });
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  useEffect(() => {
+    setMode(searchParams.has('reset') ? 'reset' : location.pathname === '/sign-up' ? 'register' : 'login');
+  }, [location.pathname, searchParams]);
+
   const resetToken = searchParams.get('reset') || '';
   const verificationToken = searchParams.get('verify') || '';
   const returnTo = searchParams.get('returnTo');
@@ -237,13 +236,6 @@ export default function Account() {
       <p className="kicker">DES COLLECTION LTD ACCOUNT</p>
       <h1>{title}</h1>
 
-      {['login', 'register'].includes(mode) && (
-        <div className="account-switch" role="tablist" aria-label="Account access">
-          <button type="button" role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'active' : ''} onClick={() => { setMode('login'); setMessage(''); }}>SIGN IN</button>
-          <button type="button" role="tab" aria-selected={mode === 'register'} className={mode === 'register' ? 'active' : ''} onClick={() => { setMode('register'); setMessage(''); }}>SIGN UP</button>
-        </div>
-      )}
-
       <form className="account-form" onSubmit={submit}>
         {mode === 'register' && <label className="account-field">Name<input type="text" autoComplete="name" required value={form.name} onChange={updateForm('name')} /></label>}
         {mode !== 'reset' && <label className="account-field">Email<input type="email" autoComplete="email" required value={form.email} onChange={updateForm('email')} /></label>}
@@ -253,8 +245,6 @@ export default function Account() {
             value={form.password}
             onChange={updateForm('password')}
             autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-            show={showPassword}
-            onToggle={() => setShowPassword((shown) => !shown)}
           />
         )}
         {mode === 'register' && (
@@ -263,8 +253,6 @@ export default function Account() {
             value={form.confirmPassword}
             onChange={updateForm('confirmPassword')}
             autoComplete="new-password"
-            show={showConfirmation}
-            onToggle={() => setShowConfirmation((shown) => !shown)}
           />
         )}
         {mode === 'reset' && (
@@ -273,8 +261,6 @@ export default function Account() {
             value={form.confirmPassword}
             onChange={updateForm('confirmPassword')}
             autoComplete="new-password"
-            show={showConfirmation}
-            onToggle={() => setShowConfirmation((shown) => !shown)}
           />
         )}
         <button className="shop-now account-submit" disabled={isSubmitting || (mode === 'reset' && !resetToken)}>
@@ -282,7 +268,8 @@ export default function Account() {
         </button>
       </form>
 
-      {mode === 'login' && <button className="account-text-action" type="button" onClick={() => { setMode('forgot'); setMessage(''); }}>Forgot password?</button>}
+      {mode === 'login' && <><button className="account-text-action" type="button" onClick={() => { setMode('forgot'); setMessage(''); }}>Forgot password?</button><p className="account-route-prompt">New to Des Collection LTD? <Link to="/sign-up">Create an account</Link></p></>}
+      {mode === 'register' && <p className="account-route-prompt">Already registered? <Link to="/sign-in">Sign in</Link></p>}
       {mode === 'forgot' && <button className="account-text-action" type="button" onClick={() => { setMode('login'); setMessage(''); }}>Back to sign in</button>}
       {mode === 'reset' && !resetToken && <p className="account-feedback is-error">This password reset link is missing or invalid. Request a new one.</p>}
       {message && <p className={`account-feedback${/invalid|expired|could not|failed|match/i.test(message) ? ' is-error' : ''}`} role="status">{message}</p>}
