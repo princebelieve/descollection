@@ -44,5 +44,5 @@ module.exports = [
   category,
   price: starterPrices[name] ?? 0,
   image: `/assets/${file}`,
-  description: "Beauty product from the Des-Collection starter catalogue.",
+  description: "Beauty product from the Des Collection LTD starter catalogue.",
 }));

@@ -51,6 +51,20 @@ export default function CheckoutResult({ success }) {
 
   const paid = result === 'paid';
   const failed = result === 'failed' || result === 'cancelled';
+  const address = details?.shippingAddress;
+  const addressText = address ? [address.line1, address.line2, address.city, address.state, address.postalCode, address.country].filter(Boolean).join(', ') : '';
+  const orderMessage = details ? [
+    'Hello Des Collection LTD, I have completed payment for this order.',
+    `Order reference: ${details.sessionId}`,
+    `Customer: ${details.customerName || 'Not provided'}`,
+    `Email: ${details.customerEmail || 'Not provided'}`,
+    `Phone: ${details.customerPhone || 'Not provided'}`,
+    'Items:',
+    ...(details.items || []).map((item) => `• ${item.name} × ${item.quantity}${item.amount != null ? ` — ${money(item.amount)}` : ''}`),
+    `Total paid: ${money((details.amountTotal || 0) / 100)}`,
+    `Delivery address: ${addressText || 'Not provided by Stripe'}`,
+  ].join('\n') : '';
+  const whatsappOrderUrl = `https://wa.me/447440248472?text=${encodeURIComponent(orderMessage)}`;
   const heading = paid
     ? 'Your order is confirmed'
     : failed
@@ -63,7 +77,7 @@ export default function CheckoutResult({ success }) {
             ? 'Your checkout is still open'
             : 'We couldn’t confirm your payment';
   const description = paid
-    ? 'Thank you for shopping with Des-Collection. Stripe has confirmed your payment and we’ll prepare your order.'
+    ? 'Thank you for shopping with Des Collection LTD. Stripe has confirmed your payment and we’ll prepare your order.'
     : failed
       ? 'No successful payment was recorded. Your basket is saved, so you can review it and try again.'
       : result === 'checking'
@@ -77,7 +91,7 @@ export default function CheckoutResult({ success }) {
   return (
     <main className={`page payment-result payment-result-${paid ? 'paid' : failed ? 'failed' : 'waiting'}`}>
       <section className="payment-result-card" aria-live="polite">
-        <div className="payment-result-brand"><span className="payment-result-monogram">D</span><span>DES-COLLECTION</span></div>
+        <div className="payment-result-brand"><span className="payment-result-monogram">D</span><span>DES COLLECTION LTD</span></div>
         <div className={`payment-result-icon ${paid ? 'is-paid' : failed ? 'is-failed' : ''}`}>
           {paid ? <Check size={31} strokeWidth={2.3} /> : failed ? <AlertCircle size={29} /> : result === 'checking' ? <LoaderCircle className="button-spinner" size={29} /> : <ShieldCheck size={29} />}
         </div>
@@ -90,6 +104,7 @@ export default function CheckoutResult({ success }) {
             <div><span>Order reference</span><strong>{details.sessionId?.slice(-10).toUpperCase()}</strong></div>
             {details.amountTotal != null && <div><span>Paid</span><strong>{money(details.amountTotal / 100)}</strong></div>}
             {details.customerEmail && <div><span>Confirmation sent to</span><strong>{details.customerEmail}</strong></div>}
+            {addressText && <div><span>Delivering to</span><strong>{addressText}</strong></div>}
           </div>
         )}
         {message && <p className="payment-result-message" role="status">{message}</p>}
@@ -102,6 +117,7 @@ export default function CheckoutResult({ success }) {
           {paid && <Link className="payment-result-secondary" to="/">BACK TO HOME</Link>}
           {failed && <Link className="payment-result-secondary" to="/shop">CONTINUE BROWSING</Link>}
         </div>
+        {paid && <a className="payment-result-whatsapp" href={whatsappOrderUrl} target="_blank" rel="noreferrer">SEND ORDER DETAILS TO WHATSAPP</a>}
         <p className="payment-result-secure"><ShieldCheck size={15} /> Payment status verified securely with Stripe</p>
       </section>
     </main>

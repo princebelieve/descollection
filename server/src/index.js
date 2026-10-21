@@ -87,7 +87,7 @@ app.get("/", (req, res) => {
   if (fs.existsSync(path.join(builtFrontend, "index.html"))) {
     return res.sendFile(path.join(builtFrontend, "index.html"));
   }
-  res.send("Des-Collection API is running. Start the React app with npm run dev.");
+  res.send("Des Collection LTD API is running. Start the React app with npm run dev.");
 });
 
 if (fs.existsSync(path.join(builtFrontend, "index.html"))) {

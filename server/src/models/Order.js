@@ -20,6 +20,8 @@ const orderSchema = new mongoose.Schema({
   },
 
   amount: Number,
+  whatsappNotifiedAt: Date,
+  whatsappNotificationError: String,
   status: {
     type: String,
     default: "pending",

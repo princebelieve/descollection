@@ -24,12 +24,36 @@ router.get("/session-status/:sessionId", async (req, res) => {
         : session.status === "open"
           ? "open"
           : "pending";
+    const customer = session.customer_details || {};
+    const shipping = session.shipping_details || {};
+    const address = shipping.address || customer.address || {};
+    let items = [];
+    if (paid) {
+      const stripeItems = await stripe.checkout.sessions.listLineItems(sessionId, { limit: 100 });
+      items = stripeItems.data.map((item) => ({
+        name: item.description || "Item",
+        quantity: item.quantity || 1,
+        amount: Number(item.amount_total || 0) / 100,
+      }));
+    }
+    res.set("Cache-Control", "no-store");
     return res.json({
       status,
       sessionId: session.id,
       amountTotal: session.amount_total,
       currency: session.currency,
-      customerEmail: session.customer_details?.email || session.customer_email || "",
+      customerName: shipping.name || customer.name || "",
+      customerEmail: customer.email || session.customer_email || "",
+      customerPhone: customer.phone || "",
+      shippingAddress: {
+        line1: address.line1 || "",
+        line2: address.line2 || "",
+        city: address.city || "",
+        state: address.state || "",
+        postalCode: address.postal_code || "",
+        country: address.country || "",
+      },
+      items,
     });
   } catch (error) {
     return res.status(error.statusCode === 404 ? 404 : 502).json({ message: "We could not verify this payment with Stripe." });

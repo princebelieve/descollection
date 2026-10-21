@@ -22,19 +22,19 @@ export default function About() {
   return (
     <main className="about-page">
       <section className="about-intro">
-        <p className="kicker">ABOUT DES-COLLECTION</p>
+        <p className="kicker">ABOUT DES COLLECTION LTD</p>
         <h1>Beauty, Confidence <span>&amp; Choice</span></h1>
         <p className="about-intro-lead">Your Style, Your Beauty, Your Collection.</p>
-        <p className="about-intro-copy">Des-Collection is a UK-based online destination for beauty, fashion and lifestyle essentials, bringing together a considered mix of products for the way you choose to look and feel.</p>
+        <p className="about-intro-copy">Des Collection LTD is a UK-based online destination for beauty, fashion and lifestyle essentials, bringing together a considered mix of products for the way you choose to look and feel.</p>
       </section>
 
       <section className="about-collection">
         <div className="about-image-wrap">
-          <img src="/assets/about-image.jpeg" alt="Gold satin texture representing the Des-Collection brand" />
-          <span>DES-COLLECTION · YOUR STYLE, YOUR CHOICE</span>
+          <img src="/assets/about-image.jpeg" alt="Gold satin texture representing the Des Collection LTD brand" />
+          <span>DES COLLECTION LTD · YOUR STYLE, YOUR CHOICE</span>
         </div>
         <div className="about-collection-copy">
-          <p className="kicker">EXPLORE DES-COLLECTION</p>
+          <p className="kicker">EXPLORE DES COLLECTION LTD</p>
           <h2>A collection for your everyday</h2>
           <p>From refreshing your beauty routine to finding a finishing touch for your look, explore a growing range chosen to suit different tastes, needs and moments.</p>
           <ul>
@@ -52,7 +52,7 @@ export default function About() {
         <p>Different people have different skin types, routines and preferences. Our aim is to offer a broad selection, so you can make informed choices and shape a collection that feels like yours.</p>
       </section>
 
-      <section className="about-values" aria-label="The Des-Collection experience">
+      <section className="about-values" aria-label="The Des Collection LTD experience">
         {values.map(({ icon: Icon, title, text }) => (
           <article key={title}>
             <Icon size={25} strokeWidth={1.6} aria-hidden="true" />
@@ -64,7 +64,7 @@ export default function About() {
 
       <section className="about-cta">
         <div><p className="kicker">YOUR STYLE. YOUR BEAUTY. YOUR CHOICE.</p><h2>Find what feels like you.</h2></div>
-        <Link to="/shop">SHOP DES-COLLECTION <ArrowRight size={18} aria-hidden="true" /></Link>
+        <Link to="/shop">SHOP DES COLLECTION LTD <ArrowRight size={18} aria-hidden="true" /></Link>
       </section>
     </main>
   );

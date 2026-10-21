@@ -47,8 +47,8 @@ function DefaultPageMetadata() {
     const isHome = pathname === '/';
     const isBlog = pathname === '/blog';
     setPageMetadata({
-      title: isHome ? 'Des-Collection | Beauty, Skincare & Lifestyle' : isBlog ? 'Beauty Notes | Des-Collection' : 'Des-Collection',
-      description: isBlog ? 'Thoughtful beauty care, everyday hygiene, and practical product guides from Des-Collection.' : 'Beauty, skincare and lifestyle essentials, selected with care.',
+      title: isHome ? 'Des Collection LTD | Beauty, Skincare & Lifestyle' : isBlog ? 'Beauty Notes | Des Collection LTD' : 'Des Collection LTD',
+      description: isBlog ? 'Thoughtful beauty care, everyday hygiene, and practical product guides from Des Collection LTD.' : 'Beauty, skincare and lifestyle essentials, selected with care.',
       image: '/assets/des-collection-logo.png',
       path: pathname,
     });

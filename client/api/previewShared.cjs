@@ -43,8 +43,8 @@ function setMeta(html, attribute, key, value) {
 function renderPreviewPage(template, { type, id, record, products = [] }) {
   const isArticle = type === "blog";
   const path = `/${isArticle ? "blog" : "product"}/${encodeURIComponent(id)}`;
-  const title = `${record.title || record.name} | Des-Collection${isArticle ? " Beauty Notes" : ""}`;
-  const description = String((isArticle ? record.excerpt || record.content : record.description) || `${record.name || record.title} from Des-Collection.`).replace(/\s+/g, " ").slice(0, 300);
+  const title = `${record.title || record.name} | Des Collection LTD${isArticle ? " Beauty Notes" : ""}`;
+  const description = String((isArticle ? record.excerpt || record.content : record.description) || `${record.name || record.title} from Des Collection LTD.`).replace(/\s+/g, " ").slice(0, 300);
   const suggested = isArticle ? relatedArticleProduct(record, products) : null;
   const image = publicImageUrl(record.image || suggested?.image || "/assets/des-collection-logo.png");
   const canonical = `${SITE_URL}${path}`;
@@ -53,7 +53,7 @@ function renderPreviewPage(template, { type, id, record, products = [] }) {
   let html = template.replace(/<title>[^<]*<\/title>/i, `<title>${escapeHtml(title)}</title>`);
   html = setMeta(html, "name", "description", description);
   html = setMeta(html, "property", "og:type", typeTag);
-  html = setMeta(html, "property", "og:site_name", "Des-Collection");
+  html = setMeta(html, "property", "og:site_name", "Des Collection LTD");
   html = setMeta(html, "property", "og:url", canonical);
   html = setMeta(html, "property", "og:title", title);
   html = setMeta(html, "property", "og:description", description);
@@ -68,8 +68,8 @@ function renderPreviewPage(template, { type, id, record, products = [] }) {
 
   const cover = `<img class="blog-cover" src="${escapeHtml(image)}" alt="${escapeHtml(record.title || record.name)}" />`;
   const body = isArticle
-    ? `<main class="page text-page blog-article"><article><header class="blog-article-hero"><p>BEAUTY NOTES · DES-COLLECTION</p><h1>${escapeHtml(record.title)}</h1><span>${record.createdAt ? new Date(record.createdAt).toLocaleDateString("en-GB") : ""}</span></header>${record.image || suggested?.image ? cover : ""}${record.excerpt ? `<p class="blog-excerpt">${escapeHtml(record.excerpt)}</p>` : ""}<div class="blog-body">${String(record.content || "").split(/\n\s*\n/).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}</div></article></main>`
-    : `<main class="page product-detail"><div class="product-detail-image">${cover}</div><div><p class="kicker">${escapeHtml(record.category || "Beauty")}</p><h1>${escapeHtml(record.name)}</h1><strong>${Number(record.price) > 0 ? `£${Number(record.price).toFixed(2)}` : "Price TBC"}</strong><p>${escapeHtml(record.description || "A Des-Collection favourite.")}</p></div></main>`;
+    ? `<main class="page text-page blog-article"><article><header class="blog-article-hero"><p>BEAUTY NOTES · DES COLLECTION LTD</p><h1>${escapeHtml(record.title)}</h1><span>${record.createdAt ? new Date(record.createdAt).toLocaleDateString("en-GB") : ""}</span></header>${record.image || suggested?.image ? cover : ""}${record.excerpt ? `<p class="blog-excerpt">${escapeHtml(record.excerpt)}</p>` : ""}<div class="blog-body">${String(record.content || "").split(/\n\s*\n/).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}</div></article></main>`
+    : `<main class="page product-detail"><div class="product-detail-image">${cover}</div><div><p class="kicker">${escapeHtml(record.category || "Beauty")}</p><h1>${escapeHtml(record.name)}</h1><strong>${Number(record.price) > 0 ? `£${Number(record.price).toFixed(2)}` : "Price TBC"}</strong><p>${escapeHtml(record.description || "A Des Collection LTD favourite.")}</p></div></main>`;
   return html.replace('<div id="root"></div>', `<div id="root">${body}</div>`);
 }
 

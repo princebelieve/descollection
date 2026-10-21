@@ -12,7 +12,7 @@ const slides = [
     eyebrow: 'YOUR STYLE, YOUR BEAUTY, YOUR COLLECTION',
     title: 'Beauty for Your Everyday',
     description: 'Explore beauty essentials selected to help you express your style and feel confident in your own way.',
-    action: 'SHOP WITH DES-COLLECTION',
+    action: 'SHOP WITH DES COLLECTION LTD',
     category: 'Face Cream',
   },
   {
@@ -77,11 +77,11 @@ function HeroCarousel() {
   }, [active]);
 
   return (
-    <section className="home-hero" aria-label="Des-Collection featured products">
+    <section className="home-hero" aria-label="Des Collection LTD featured products">
       <img key={slide.image} className={`home-hero-image${slide.image.endsWith('home-hero2.jpeg') ? ' home-hero-image-2' : slide.image.endsWith('home-hero4.png') ? ' home-hero-image-4' : ''}`} src={slide.image} alt="" />
       <div className="home-hero-shade" />
       <div className="home-hero-copy" key={slide.title}>
-        <span className="home-hero-brand">DES-COLLECTION</span>
+        <span className="home-hero-brand">DES COLLECTION LTD</span>
         <p>{slide.eyebrow}</p>
         <h1>{slide.title}</h1>
         <Link className="home-hero-cta" to={`/category/${encodeURIComponent(slide.category)}`}>
@@ -125,7 +125,7 @@ function FeaturePromos({ products }) {
         <Link className={`home-product-promo promo-${index + 1}`} to={`/product/${productId(product)}`} key={productId(product)}>
           <img key={productId(product)} className="home-promo-image" src={imageOf(product)} alt={product.name} />
           <span className="home-product-promo-copy">
-            <small>DES-COLLECTION FAVOURITE</small>
+            <small>DES COLLECTION LTD FAVOURITE</small>
             <strong>{product.name}</strong>
             <span>{product.category || 'Beauty'}{Number(product.price) > 0 ? ` · ${money(product.price)}` : ''}</span>
             <b>SHOP NOW <ArrowRight size={16} aria-hidden="true" /></b>
@@ -186,9 +186,9 @@ function EditorChoice({ products }) {
   return (
     <section className="home-editors">
       <div className="home-editors-heading">
-        <span>THE DES-COLLECTION EDIT</span>
-        <h2>Des-Collection Picks &amp; Offers</h2>
-        <div className="home-editor-tabs" role="tablist" aria-label="Des-Collection picks and offers">
+        <span>THE DES COLLECTION LTD EDIT</span>
+        <h2>Des Collection LTD Picks &amp; Offers</h2>
+        <div className="home-editor-tabs" role="tablist" aria-label="Des Collection LTD picks and offers">
           <button role="tab" aria-selected={tab === 'featured'} className={tab === 'featured' ? 'active' : ''} onClick={() => setTab('featured')}>FEATURED PRODUCTS</button>
           <button role="tab" aria-selected={tab === 'discounted'} className={tab === 'discounted' ? 'active' : ''} onClick={() => setTab('discounted')}>DISCOUNTED PRODUCTS</button>
         </div>

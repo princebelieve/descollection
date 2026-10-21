@@ -12,7 +12,7 @@ export default function Footer() {
     <footer className="store-footer">
       <div className="store-footer-grid">
         <section className="store-footer-brand">
-          <Link to="/" aria-label="Des-Collection home"><img src="/logo.png" alt="Des-Collection" /></Link>
+          <Link to="/" aria-label="Des Collection LTD home"><img src="/logo.png" alt="Des Collection LTD" /></Link>
           <address>
             <a href="tel:+447440248472">Call: +44 7440 248472</a>
             <a href="mailto:sales@descollection.co.uk">Email: sales@descollection.co.uk</a>
@@ -37,7 +37,7 @@ export default function Footer() {
         ))}
       </div>
       <div className="store-footer-bottom">
-        <span>© {new Date().getFullYear()} Des-Collection</span>
+        <span>© {new Date().getFullYear()} Des Collection LTD</span>
         <span>Style, Quality &amp; Elegance</span>
       </div>
     </footer>

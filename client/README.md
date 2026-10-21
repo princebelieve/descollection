@@ -1,4 +1,4 @@
-# Des-Collection client
+# Des Collection LTD client
 
 The customer storefront is a React and Vite app. Routes live in `src/pages`, shared interface components in `src/components`, store state in `src/context`, product data in `src/data`, and small shared helpers in `src/utils`.
 

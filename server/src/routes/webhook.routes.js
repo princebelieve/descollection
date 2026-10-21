@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const stripe = require("../services/stripe");
 const Order = require("../models/Order");
+const { sendPaidOrderNotification } = require("../services/whatsapp");
 
 const checkoutEvents = new Set([
   "checkout.session.completed",
@@ -53,13 +54,40 @@ router.post("/", async (req, res) => {
       amount: Number(session.amount_total || 0) / 100,
     };
 
-    const existingOrder = await Order.findOne({ stripeSessionId: session.id });
+    try {
+      const stripeItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 100 });
+      orderDetails.items = JSON.stringify(stripeItems.data.map((item) => ({
+        name: item.description || "Item",
+        quantity: item.quantity || 1,
+        amount: Number(item.amount_total || 0) / 100,
+        currency: item.currency || "gbp",
+      })));
+    } catch (error) {
+      console.error("Could not load Stripe order line items:", error.message);
+    }
+
+    let existingOrder = await Order.findOne({ stripeSessionId: session.id });
     if (!existingOrder) {
-      await Order.create({ ...orderDetails, status: nextStatus });
+      existingOrder = await Order.create({ ...orderDetails, status: nextStatus });
       if (nextStatus === "paid") console.log("New paid order received:", session.id);
     } else if (nextStatus !== "pending" && existingOrder.status !== nextStatus) {
       existingOrder.set({ ...orderDetails, status: nextStatus });
       await existingOrder.save();
+    }
+
+    if (nextStatus === "paid" && !existingOrder.whatsappNotifiedAt) {
+      try {
+        const notification = await sendPaidOrderNotification(existingOrder);
+        if (notification.sent) {
+          existingOrder.whatsappNotifiedAt = new Date();
+          existingOrder.whatsappNotificationError = "";
+          await existingOrder.save();
+        }
+      } catch (error) {
+        existingOrder.whatsappNotificationError = error.message.slice(0, 500);
+        await existingOrder.save();
+        console.error("WhatsApp order notification failed:", error.message);
+      }
     }
 
     return res.json({ received: true });

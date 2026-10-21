@@ -53,7 +53,7 @@ export default function Blog() {
   useEffect(() => {
     if (!post || !id) return;
     setPageMetadata({
-      title: `${post.title} | Des-Collection Beauty Notes`,
+      title: `${post.title} | Des Collection LTD Beauty Notes`,
       description: (post.excerpt || post.content).slice(0, 300),
       image: post.image || recommendation?.image || '/assets/des-collection-logo.png',
       path: `/blog/${id}`,
@@ -63,7 +63,7 @@ export default function Blog() {
   if (id) return <main className="page text-page blog-article">
     <Link to="/blog" className="blog-back">← All articles</Link>
     {error ? <p>{error}</p> : post && <article>
-      <header className="blog-article-hero"><p>BEAUTY NOTES · DES-COLLECTION</p><h1>{post.title}</h1><span>{new Date(post.createdAt).toLocaleDateString()}</span></header>
+      <header className="blog-article-hero"><p>BEAUTY NOTES · DES COLLECTION LTD</p><h1>{post.title}</h1><span>{new Date(post.createdAt).toLocaleDateString()}</span></header>
       {post.image && <img className="blog-cover" src={post.image} alt="" />}
       {post.excerpt && <p className="blog-excerpt">{post.excerpt}</p>}
       <div className="blog-body">{post.content.split(/\n\s*\n/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
@@ -73,8 +73,8 @@ export default function Blog() {
   </main>;
 
   return <main className="page blog-page">
-    <header className="blog-hero"><p>FROM DES-COLLECTION</p><h1>Beauty notes</h1><span>Thoughtful care, everyday rituals, and practical guides for feeling good in your skin.</span></header>
-    <p className="blog-intro">Ideas, product guides and updates from the Des-Collection team.</p>
+    <header className="blog-hero"><p>FROM DES COLLECTION LTD</p><h1>Beauty notes</h1><span>Thoughtful care, everyday rituals, and practical guides for feeling good in your skin.</span></header>
+    <p className="blog-intro">Ideas, product guides and updates from the Des Collection LTD team.</p>
     {error ? <p>{error}</p> : posts.length ? <div className="blog-grid">{posts.map((article) => <article className="blog-card" key={article._id}>
       <Link to={`/blog/${article._id}`}>
         <div className="blog-card-cover">{article.image ? <img src={article.image} alt="" /> : <div className="blog-image-placeholder" />}<span>{article.title}</span></div>

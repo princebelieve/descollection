@@ -62,8 +62,8 @@ async function registerUser(req, res) {
     const link = `${clientUrl()}/account?verify=${encodeURIComponent(token)}`;
     await sendGmailMessage({
       to: email,
-      subject: "Confirm your Des-Collection account",
-      text: `Hello ${name},\n\nConfirm your email address to activate your Des-Collection account:\n${link}\n\nThis link expires in 24 hours. If you did not create this account, you can ignore this email.`,
+      subject: "Confirm your Des Collection LTD account",
+      text: `Hello ${name},\n\nConfirm your email address to activate your Des Collection LTD account:\n${link}\n\nThis link expires in 24 hours. If you did not create this account, you can ignore this email.`,
     });
 
     return res.status(createdNewUser ? 201 : 200).json({ message: "Check your email for a new confirmation link to activate your account." });
@@ -134,8 +134,8 @@ async function requestPasswordReset(req, res) {
     const link = `${clientUrl()}/account?reset=${encodeURIComponent(token)}`;
     await sendGmailMessage({
       to: user.email,
-      subject: "Reset your Des-Collection password",
-      text: `Hello ${user.name},\n\nUse this link to choose a new password for your Des-Collection account:\n${link}\n\nThis link expires in one hour. If you did not request a reset, you can ignore this email.`,
+      subject: "Reset your Des Collection LTD password",
+      text: `Hello ${user.name},\n\nUse this link to choose a new password for your Des Collection LTD account:\n${link}\n\nThis link expires in one hour. If you did not request a reset, you can ignore this email.`,
     });
     return res.json({ message: genericMessage });
   } catch (err) {

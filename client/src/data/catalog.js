@@ -41,7 +41,7 @@ const starterItems = [
   ['Veet Gold Turmeric Soap','Soap','veet-gold-turmeric-soap.jpeg'],
   ['Clear & Smooth White Moon Gel','Creams','clear-smooth-white-moon-gel.jpeg'],
   ['Golden Face Cream with Vitamin E','Face Cream','golden-face-cream-vitamin-e.jpeg'],
-].map(([name,category,file],i)=>({id:`demo-${i}`,name,category,image:`${ASSET}${file}`,description:'Discover this beauty essential from the Des-Collection range.',price:prices[name]??null}));
+].map(([name,category,file],i)=>({id:`demo-${i}`,name,category,image:`${ASSET}${file}`,description:'Discover this beauty essential from the Des Collection LTD range.',price:prices[name]??null}));
 export const categories =['Brands','Body Lotions','Body Wash','Serum','Oil','Face Cream','Soap','Creams','Scrub','Set','Toner','Cleanser','Fragrances','Hair Care','Cosmetics','Shoes','Bags','Earrings','Hair Ties','Female Turkey Gowns','More'];
 export const menuItems =[['Home','/'],['About us','/about'],['Shop','/shop'],['Blog','/blog'],['Brands','/brands'],['FAQ','/faq']];
 export const fallbackBrands =['A.M Glow','Abebi White','Active White','Advance Korean','Advance Purity','Aguaje','Al Affia','Alisha','Amazon','Amlactin','Amos White','Aneeza','Anian','Asantee','BabySecret','Carrot Magic','Duchess Glow','Effimax','Jhalak','Juli Gold','Parley Goldie','Veet Gold'];

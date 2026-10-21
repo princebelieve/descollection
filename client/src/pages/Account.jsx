@@ -234,7 +234,7 @@ export default function Account() {
 
   return (
     <main className="page account-page">
-      <p className="kicker">DES-COLLECTION ACCOUNT</p>
+      <p className="kicker">DES COLLECTION LTD ACCOUNT</p>
       <h1>{title}</h1>
 
       {['login', 'register'].includes(mode) && (

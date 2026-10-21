@@ -16,7 +16,7 @@ export function setPageMetadata({ title, description, image, path, type = 'websi
   document.title = title;
   upsertMeta('name', 'description', description);
   upsertMeta('property', 'og:type', type);
-  upsertMeta('property', 'og:site_name', 'Des-Collection');
+  upsertMeta('property', 'og:site_name', 'Des Collection LTD');
   upsertMeta('property', 'og:url', url);
   upsertMeta('property', 'og:title', title);
   upsertMeta('property', 'og:description', description);

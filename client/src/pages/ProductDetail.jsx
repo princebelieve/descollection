@@ -14,9 +14,9 @@ export default function ProductDetail() {
 
   useEffect(() => {
     if (!product) return;
-    const description = product.description || `${product.name} from Des-Collection. Explore product details, price, and availability.`;
+    const description = product.description || `${product.name} from Des Collection LTD. Explore product details, price, and availability.`;
     setPageMetadata({
-      title: `${product.name} | Des-Collection`,
+      title: `${product.name} | Des Collection LTD`,
       description: description.slice(0, 300),
       image,
       path: `/product/${id}`,
@@ -33,7 +33,7 @@ export default function ProductDetail() {
       <p className="kicker">{product.category}</p>
       <h1>{product.name}</h1>
       <strong>{Number(product.price) > 0 ? money(product.price) : 'Price TBC'}</strong>
-      <p>{product.description || 'A Des-Collection favourite.'}</p>
+      <p>{product.description || 'A Des Collection LTD favourite.'}</p>
       <AddToCartButton product={product} />
       <button className="compare-detail" onClick={() => toggleCompare({ ...product, id })}>{selected ? 'REMOVE FROM' : 'ADD TO'} COMPARE</button>
       <ShareLinks path={`/product/${id}`} title={product.name} />

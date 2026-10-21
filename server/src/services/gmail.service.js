@@ -31,7 +31,7 @@ async function getGmailAccessToken() {
 async function sendGmailMessage({ to, subject, text }) {
   const accessToken = await getGmailAccessToken();
   const message = [
-    `From: Des-Collection <${process.env.GMAIL_USER}>`,
+    `From: Des Collection LTD <${process.env.GMAIL_USER}>`,
     `To: ${to}`,
     `Subject: ${subject}`,
     "MIME-Version: 1.0",

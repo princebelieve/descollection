@@ -27,10 +27,11 @@ export default function Admin() {
   const location = useLocation();
   const navigate = useNavigate();
   const section = location.pathname.split('/')[2] || 'products';
-  const validSections = ['products', 'product-form', 'shipping', 'blog', 'articles'];
+  const validSections = ['products', 'product-form', 'shipping', 'orders', 'blog', 'articles'];
   const isProducts = section === 'products';
   const isProductForm = section === 'product-form';
   const isShipping = section === 'shipping';
+  const isOrders = section === 'orders';
   const isBlogEditor = section === 'blog';
   const isBlogArticles = section === 'articles';
   const [token, setToken] = useState(localStorage.getItem('des-role') === 'admin' ? localStorage.getItem('des-token') || '' : '');
@@ -42,6 +43,7 @@ export default function Admin() {
   const [edit, setEdit] = useState(null);
   const [error, setError] = useState('');
   const [posts, setPosts] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [postForm, setPostForm] = useState(emptyPost);
   const [postFile, setPostFile] = useState(null);
   const [editPost, setEditPost] = useState(null);
@@ -77,7 +79,16 @@ export default function Admin() {
         setPosts(data);
       })
       .catch((err) => setError(err.message));
-  }, [token]);
+    if (isOrders) {
+      fetch(`${API}/api/orders`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(async (response) => {
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.message || 'Could not load orders');
+          setOrders(data);
+        })
+        .catch((err) => setError(err.message));
+    }
+  }, [token, isOrders]);
 
   const loginAdmin = async (event) => {
     event.preventDefault();
@@ -209,6 +220,21 @@ export default function Admin() {
     finally { setBusyAction(''); }
   };
 
+  const sendOrderToWhatsApp = async (id) => {
+    setBusyAction(`whatsapp:${id}`);
+    try {
+      const response = await fetch(`${API}/api/orders/${id}/notify-whatsapp`, { method: 'POST', headers: auth });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Could not send WhatsApp notification');
+      setOrders((current) => current.map((order) => order._id === id ? { ...order, whatsappNotifiedAt: data.whatsappNotifiedAt, whatsappNotificationError: '' } : order));
+      notify('Order sent to WhatsApp');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusyAction('');
+    }
+  };
+
   if (!token) {
     return (
       <main className="page admin-page">
@@ -231,11 +257,13 @@ export default function Admin() {
         <Link to="/admin/product-form" aria-current={isProductForm ? 'page' : undefined}>Add product</Link>
         <Link to="/admin/products" aria-current={isProducts ? 'page' : undefined}>Products</Link>
         <Link to="/admin/shipping" aria-current={isShipping ? 'page' : undefined}>Shipping settings</Link>
+        <Link to="/admin/orders" aria-current={isOrders ? 'page' : undefined}>Orders</Link>
         <Link to="/admin/blog" aria-current={isBlogEditor ? 'page' : undefined}>Create blog post</Link>
         <Link to="/admin/articles" aria-current={isBlogArticles ? 'page' : undefined}>Blog articles</Link>
       </aside>
       <div className="admin-dashboard-content">
-      <h1>{isProducts ? 'Products' : isProductForm ? (edit ? 'Edit product' : 'Add product') : isShipping ? 'Shipping settings' : isBlogEditor ? 'Create blog post' : 'Blog articles'}</h1>
+      <h1>{isProducts ? 'Products' : isProductForm ? (edit ? 'Edit product' : 'Add product') : isShipping ? 'Shipping settings' : isOrders ? 'Orders' : isBlogEditor ? 'Create blog post' : 'Blog articles'}</h1>
+      {isOrders && error && <p className="error" role="alert">{error}</p>}
       {(isProducts || isProductForm) && <>
       <p>Manage live product names, categories, photos, prices and discounts.</p>
       </>}
@@ -281,6 +309,23 @@ export default function Admin() {
         ))}
       </div>
       </>}
+      {isOrders && <section className="admin-orders" aria-label="Customer orders">
+        <p>Paid and pending Stripe orders, including the delivery address entered during checkout.</p>
+        {orders.length ? orders.map((order) => {
+          let items = [];
+          try { items = JSON.parse(order.items || '[]'); } catch { /* Older orders may contain legacy item IDs. */ }
+          const address = [order.deliveryAddress, order.deliveryAddress2, order.deliveryCity, order.deliveryState, order.deliveryPostcode, order.deliveryCountry].filter(Boolean).join(', ');
+          return <article className="admin-order-card" key={order._id}>
+            <header><div><h2>Order {order.stripeSessionId?.slice(-10).toUpperCase() || order._id}</h2><time>{new Date(order.createdAt).toLocaleString()}</time></div><strong className={`admin-order-status status-${order.status}`}>{order.status}</strong></header>
+            <div className="admin-order-columns">
+              <section><h3>Customer</h3><p>{order.customerName || 'Name not provided'}</p><p>{order.customerEmail || 'Email not provided'}</p><p>{order.customerPhone || 'Phone not provided'}</p></section>
+              <section><h3>Delivery address</h3><p>{address || 'No delivery address recorded'}</p></section>
+              <section><h3>Items</h3>{items.length ? <ul>{items.map((item, index) => <li key={`${item.name || item.id}-${index}`}>{item.name || item.description || item.id || 'Item'} × {item.quantity || item.qty || 1}{item.amount != null ? ` · ${money(item.amount)}` : ''}</li>)}</ul> : <p>Items recorded in the payment metadata.</p>}<b>Total: {money(order.amount)}</b></section>
+            </div>
+            <div className="admin-order-whatsapp"><span>WhatsApp notification: {order.whatsappNotifiedAt ? `sent ${new Date(order.whatsappNotifiedAt).toLocaleString()}` : order.whatsappNotificationError ? `failed: ${order.whatsappNotificationError}` : 'not configured or not sent'}</span>{order.status === 'paid' && !order.whatsappNotifiedAt && <button type="button" disabled={busyAction === `whatsapp:${order._id}`} onClick={() => sendOrderToWhatsApp(order._id)}>{busyAction === `whatsapp:${order._id}` ? 'SENDING…' : order.whatsappNotificationError ? 'RETRY WHATSAPP' : 'SEND TO WHATSAPP'}</button>}</div>
+          </article>;
+        }) : <p className="shipping-empty">No Stripe orders have been recorded yet.</p>}
+      </section>}
       {isShipping && <>
       <section id="shipping-settings" className="delivery-control">
         <h2>Shipping fees and destinations</h2>

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 const contactOptions = [
   { icon: Phone, label: 'Call us', value: '+44 7440 248472', href: 'tel:+447440248472' },
   { icon: Mail, label: 'Customer enquiries', value: 'sales@descollection.co.uk', href: 'mailto:sales@descollection.co.uk' },
-  { icon: Mail, label: 'Contact the Des-Collection admin team', value: 'admin@descollection.co.uk', href: 'mailto:admin@descollection.co.uk' },
+  { icon: Mail, label: 'Contact the Des Collection LTD admin team', value: 'admin@descollection.co.uk', href: 'mailto:admin@descollection.co.uk' },
   { icon: MapPin, label: 'Visit us', value: '312 Moston Lane, Manchester M40 9WB', href: 'https://maps.google.com/?q=312+Moston+Lane,+Manchester+M40+9WB' },
 ];
 
@@ -12,9 +12,9 @@ export default function Contact() {
   return (
     <main className="contact-page">
       <section className="contact-card">
-        <img className="contact-logo" src="/assets/des-collection-logo.png" alt="Des-Collection" />
+        <img className="contact-logo" src="/assets/des-collection-logo.png" alt="Des Collection LTD" />
         <p className="kicker">WE’RE HERE TO HELP</p>
-        <h1>Contact Des-Collection</h1>
+        <h1>Contact Des Collection LTD</h1>
         <p className="contact-intro">Questions about a product, your order, or anything else? Choose the best way to reach us below.</p>
         <div className="contact-options">
           {contactOptions.map(({ icon: Icon, label, value, href }) => (
