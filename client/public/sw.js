@@ -1,4 +1,4 @@
-const CACHE_NAME = 'des-collection-shell-v1';
+const CACHE_NAME = 'des-collection-shell-v2';
 const APP_SHELL = ['/', '/manifest.webmanifest', '/logo.png', '/logo-192.png', '/apple-touch-icon.png', '/favicon.png'];
 
 self.addEventListener('install', (event) => {
