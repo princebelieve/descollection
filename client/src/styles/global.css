@@ -561,3 +561,12 @@
 .topbar .logo small{font-size:9px;font-weight:700;letter-spacing:.34em;color:var(--plum)}
 @media(max-width:899px){.topbar .logo{width:150px;height:auto}.topbar .logo span{font-size:13px}.topbar .logo small{font-size:8px}}
 @media(max-width:380px){.topbar .logo{width:130px}.topbar .logo span{font-size:11px}}
+
+/* Metallic black header with a consistent gold wordmark and controls. */
+.topbar{background:linear-gradient(112deg,#101010 0%,#242424 24%,#111 52%,#292929 76%,#101010 100%);border-bottom:1px solid #a8842b;box-shadow:none}
+.topbar .head-icon,.topbar .search-open,.topbar .account-head,.topbar .signout-head{color:#d4af37}
+.topbar .account-head{border-color:#d4af37}
+.topbar .account-head:hover{background:#d4af37;color:#111}
+.topbar .logo{color:#d4af37;text-shadow:none;filter:none}
+.topbar .logo span,.topbar .logo small{color:#d4af37;text-shadow:none}
+.topbar .head-icon i{background:#d4af37;color:#17130a}
