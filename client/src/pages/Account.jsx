@@ -54,6 +54,8 @@ export default function Account() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const resetToken = searchParams.get('reset') || '';
   const verificationToken = searchParams.get('verify') || '';
+  const returnTo = searchParams.get('returnTo');
+  const postAuthPath = returnTo?.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/';
 
   useEffect(() => {
     if (!verificationToken) return undefined;
@@ -99,7 +101,7 @@ export default function Account() {
             localStorage.setItem('des-token', data.token);
             localStorage.setItem('des-role', data.role);
             window.dispatchEvent(new Event('des-auth-changed'));
-            navigate(data.role === 'admin' ? '/admin' : '/', { replace: true });
+            navigate(data.role === 'admin' ? '/admin' : postAuthPath, { replace: true });
           } catch (error) {
             setMessage(error.message);
           } finally {
@@ -177,7 +179,7 @@ export default function Account() {
         localStorage.setItem('des-token', data.token);
         localStorage.setItem('des-role', data.role);
         window.dispatchEvent(new Event('des-auth-changed'));
-        navigate(data.role === 'admin' ? '/admin' : '/', { replace: true });
+        navigate(data.role === 'admin' ? '/admin' : postAuthPath, { replace: true });
         return;
       }
       if (mode === 'register') {

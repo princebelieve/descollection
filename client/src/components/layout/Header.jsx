@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Heart, LogOut, Menu, Scale, Search, Store, UserRound } from 'lucide-react';
-import { categories, menuItems } from '../../data/catalog';
+import { API, categories, menuItems } from '../../data/catalog';
 import { useStore } from '../../context/StoreContext';
 import CartIcon from '../icons/CartIcon';
 
@@ -25,9 +25,30 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    const syncAuth = () => setRole(localStorage.getItem('des-role') || '');
+    const syncAuth = () => {
+      const token = localStorage.getItem('des-token');
+      const cachedRole = localStorage.getItem('des-role') || '';
+      setRole(cachedRole);
+      if (!token) return;
+      fetch(`${API}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(async (response) => {
+          if (response.status === 401) {
+            localStorage.removeItem('des-token');
+            localStorage.removeItem('des-role');
+            setRole('');
+            return;
+          }
+          if (!response.ok) return;
+          const user = await response.json();
+          const verifiedRole = user.role || 'user';
+          localStorage.setItem('des-role', verifiedRole);
+          setRole(verifiedRole);
+        })
+        .catch(() => {});
+    };
     window.addEventListener('des-auth-changed', syncAuth);
     window.addEventListener('storage', syncAuth);
+    syncAuth();
     return () => {
       window.removeEventListener('des-auth-changed', syncAuth);
       window.removeEventListener('storage', syncAuth);

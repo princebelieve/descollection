@@ -13,11 +13,16 @@ export default function Checkout() {
   const [shippingZones, setShippingZones] = useState([]);
   const [shippingCountry, setShippingCountry] = useState('');
   const [customer, setCustomer] = useState({ name: '', email: '' });
+  const [account, setAccount] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [authNotice, setAuthNotice] = useState('');
   const [login, setLogin] = useState({ email: '', password: '' });
   const [clientSecret, setClientSecret] = useState('');
   const [busy, setBusy] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
   const [error, setError] = useState('');
+  const [shippingError, setShippingError] = useState('');
+  const [shippingLoading, setShippingLoading] = useState(true);
   const [loginMessage, setLoginMessage] = useState('');
   const subtotal = cart.reduce((sum, row) => sum + Number(row.product?.price || 0) * row.qty, 0);
   const missingPrice = cart.some((row) => !(Number(row.product?.price) > 0));
@@ -26,12 +31,58 @@ export default function Checkout() {
   const delivery = Number(selectedDestination?.zone.fee || 0);
 
   useEffect(() => {
-    fetch(`${API}/api/settings`).then((response) => response.ok ? response.json() : null).then((data) => {
-      if (!data?.shippingZones?.length) return;
-      setShippingZones(data.shippingZones);
-      const countries = data.shippingZones.flatMap((zone) => zone.countries);
-      setShippingCountry((current) => countries.includes(current) ? current : countries.includes('GB') ? 'GB' : countries[0] || '');
-    }).catch(() => {});
+    let active = true;
+    const token = localStorage.getItem('des-token');
+    const verifySession = token
+      ? fetch(`${API}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+          .then(async (response) => {
+            if (response.status === 401) {
+              localStorage.removeItem('des-token');
+              localStorage.removeItem('des-role');
+              window.dispatchEvent(new Event('des-auth-changed'));
+              return null;
+            }
+            if (!response.ok) {
+              if (active) setAuthNotice('We could not verify your saved sign-in. You can still check out as a guest, or sign in again.');
+              return null;
+            }
+            return response.json();
+          })
+          .then((user) => {
+            if (!active || !user) return;
+            setAccount(user);
+            setCustomer({ name: user.name || '', email: user.email || '' });
+            localStorage.setItem('des-role', user.role || 'user');
+            window.dispatchEvent(new Event('des-auth-changed'));
+          })
+          .catch(() => {
+            if (active) setAuthNotice('We could not verify your saved sign-in. You can still check out as a guest, or sign in again.');
+          })
+          .finally(() => { if (active) setAuthChecked(true); })
+      : Promise.resolve().then(() => { if (active) setAuthChecked(true); });
+    const loadSettings = fetch(`${API}/api/settings`)
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`Shipping settings could not be loaded (server returned ${response.status}).`);
+        return response.json();
+      })
+      .then((data) => {
+        if (!active) return;
+        const zones = Array.isArray(data?.shippingZones) && data.shippingZones.length
+          ? data.shippingZones
+          : [{ name: 'United Kingdom', countries: ['GB'], fee: Number(data?.deliveryFee) || 0 }];
+        const validZones = zones.filter((zone) => Array.isArray(zone.countries) && zone.countries.length);
+        if (!validZones.length) throw new Error('No shipping countries are configured. Please contact the store.');
+        setShippingZones(validZones);
+        const countries = validZones.flatMap((zone) => zone.countries);
+        setShippingCountry((current) => countries.includes(current) ? current : countries.includes('GB') ? 'GB' : countries[0] || '');
+        setShippingError('');
+      })
+      .catch((settingsError) => {
+        if (active) setShippingError(settingsError.message || 'Shipping destinations are temporarily unavailable.');
+      })
+      .finally(() => { if (active) setShippingLoading(false); });
+    Promise.allSettled([verifySession, loadSettings]);
+    return () => { active = false; };
   }, []);
 
   const handleEmbeddedError = useCallback((message) => setError(message), []);
@@ -51,6 +102,7 @@ export default function Checkout() {
       localStorage.setItem('des-token', data.token);
       localStorage.setItem('des-role', data.role);
       setCustomer({ name: data.name || '', email: data.email || login.email });
+      setAccount({ name: data.name || '', email: data.email || login.email, role: data.role });
       setLoginMessage(`Signed in as ${data.email || login.email}. Your email is ready for checkout.`);
       window.dispatchEvent(new Event('des-auth-changed'));
     } catch (signInError) {
@@ -102,15 +154,19 @@ export default function Checkout() {
         <section className="checkout-main" aria-label="Checkout and payment">
           {!clientSecret && (
             <>
-              <details className="checkout-disclosure checkout-signin">
-                <summary>Returning customer? <strong>Sign in here</strong><ChevronDown size={19} /></summary>
+              {account ? <p className="checkout-signed-in" role="status">Signed in as <strong>{account.email}</strong>.</p> : <>
+              {!authChecked ? <p className="checkout-auth-status">Checking your account…</p> : <details className="checkout-disclosure checkout-signin">
+                <summary>Already have an account? <strong>Sign in (optional)</strong><ChevronDown size={19} /></summary>
                 <form className="checkout-signin-form" onSubmit={signIn}>
                   <label>Email address<input type="email" autoComplete="email" required value={login.email} onChange={(event) => setLogin({ ...login, email: event.target.value })} /></label>
                   <label>Password<input type="password" autoComplete="current-password" required value={login.password} onChange={(event) => setLogin({ ...login, password: event.target.value })} /></label>
                   <button className="checkout-signin-submit" disabled={signingIn}>{signingIn ? <><LoaderCircle className="button-spinner" size={17} /> SIGNING IN...</> : 'SIGN IN'}</button>
                   {loginMessage && <p className={loginMessage.startsWith('Signed in') ? 'checkout-inline-success' : 'checkout-inline-error'} role="status">{loginMessage}</p>}
                 </form>
-              </details>
+                <p className="checkout-account-link"><Link to="/account?returnTo=%2Fcheckout">Sign in or register with Google</Link></p>
+              </details>}
+              {authNotice && <p className="checkout-country-status" role="status">{authNotice}</p>}
+              </>}
 
               <details className="checkout-disclosure checkout-coupon">
                 <summary>Have a coupon? <strong>Enter your code at payment</strong><ChevronDown size={19} /></summary>
@@ -118,13 +174,14 @@ export default function Checkout() {
               </details>
 
               {missingPrice && <p className="checkout-price-note">An item in your basket needs a price before online payment can continue. Please contact us or check back shortly.</p>}
-              <label className="checkout-country">Delivery country<select required value={shippingCountry} onChange={(event) => setShippingCountry(event.target.value)}>
+              <label className="checkout-country">Delivery country<select required disabled={shippingLoading || Boolean(shippingError)} value={shippingCountry} onChange={(event) => setShippingCountry(event.target.value)}>
                 <option value="" disabled>Select a delivery country</option>
                 {destinations.map(({ code }) => <option key={code} value={code}>{new Intl.DisplayNames(['en'], { type: 'region' }).of(code)}</option>)}
               </select></label>
-              {shippingZones.length === 0 && <p className="checkout-price-note">Shipping destinations are temporarily unavailable. Please try again later.</p>}
+              {shippingLoading && <p className="checkout-country-status">Loading delivery countries…</p>}
+              {shippingError && <p className="checkout-inline-error" role="alert">{shippingError}</p>}
               {error && <p className="checkout-inline-error" role="alert">{error}</p>}
-              <button className="shop-now checkout-start" type="button" onClick={startPayment} disabled={busy || missingPrice || !selectedDestination}>
+              <button className="shop-now checkout-start" type="button" onClick={startPayment} disabled={busy || missingPrice || shippingLoading || Boolean(shippingError) || !selectedDestination}>
                 {busy ? <><LoaderCircle className="button-spinner" size={18} /> PREPARING SECURE CHECKOUT...</> : <><LockKeyhole size={17} /> CONTINUE TO PAYMENT</>}
               </button>
               <p className="checkout-secure-note">Secure payment by Stripe. Available payment methods are shown in the payment form.</p>
