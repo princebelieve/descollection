@@ -570,3 +570,9 @@
 .topbar .logo{color:#d4af37;text-shadow:none;filter:none}
 .topbar .logo span,.topbar .logo small{color:#d4af37;text-shadow:none}
 .topbar .head-icon i{background:#d4af37;color:#17130a}
+
+/* Keep the original image logo in the header, without a shadow. */
+.topbar .logo{width:92px;height:74px;display:grid;place-items:center}
+.topbar .logo img{width:100%;height:100%;object-fit:contain;filter:none}
+@media(max-width:899px){.topbar .logo{width:76px;height:66px}}
+@media(max-width:380px){.topbar .logo{width:68px;height:62px}}
