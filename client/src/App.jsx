@@ -23,6 +23,8 @@ import FAQ from './pages/FAQ';
 import Home from './pages/Home';
 import ProductDetail from './pages/ProductDetail';
 import Wishlist from './pages/Wishlist';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 import { setPageMetadata } from './utils/seo';
 
 function ShopRoute() {
@@ -68,6 +70,8 @@ export default function App() {
     <Route path="/blog/:id" element={<Blog />} />
     <Route path="/faq" element={<FAQ />} />
     <Route path="/contact" element={<Contact />} />
+    <Route path="/terms" element={<Terms />} />
+    <Route path="/privacy" element={<Privacy />} />
     <Route path="/product/:id" element={<ProductDetail />} />
     <Route path="/cart" element={<Cart />} />
     <Route path="/checkout" element={<Checkout />} />
