@@ -88,18 +88,6 @@ export default function Header() {
         </div>
       </header>
 
-      <section className="payment-methods-strip" aria-label="Secure payment options available at checkout">
-        <span className="payment-methods-heading">SECURE PAYMENTS</span>
-        <span className="payment-method-mark payment-visa">VISA</span>
-        <span className="payment-method-mark payment-mastercard"><i aria-hidden="true" /><b>mastercard</b></span>
-        <span className="payment-method-mark payment-amex">AMERICAN<br />EXPRESS</span>
-        <span className="payment-method-mark payment-apple">Apple Pay</span>
-        <span className="payment-method-mark payment-google"><b>G</b> Pay</span>
-        <span className="payment-method-mark payment-link">Link</span>
-        <span className="payment-methods-powered">Powered by Stripe</span>
-        <span className="payment-methods-more">More options may appear at checkout</span>
-      </section>
-
       {search && <form className="search-panel" onSubmit={submit}><input autoFocus placeholder="Search for products" value={term} onChange={(event) => setTerm(event.target.value)} /><button aria-label="Search"><Search /></button></form>}
 
       {drawer && (

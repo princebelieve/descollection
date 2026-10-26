@@ -46,6 +46,17 @@ export default function Footer() {
           </details>
         ))}
       </div>
+      <section className="payment-methods-strip footer-payment-methods" aria-label="Secure payment options available at checkout">
+        <span className="payment-methods-heading">SECURE PAYMENTS</span>
+        <span className="payment-method-mark payment-visa">VISA</span>
+        <span className="payment-method-mark payment-mastercard"><i aria-hidden="true" /><b>mastercard</b></span>
+        <span className="payment-method-mark payment-amex">AMERICAN<br />EXPRESS</span>
+        <span className="payment-method-mark payment-apple">Apple Pay</span>
+        <span className="payment-method-mark payment-google"><b>G</b> Pay</span>
+        <span className="payment-method-mark payment-link">Link</span>
+        <span className="payment-methods-powered">Powered by Stripe</span>
+        <span className="payment-methods-more">More options may appear at checkout</span>
+      </section>
       <div className="store-footer-bottom">
         <span>© {new Date().getFullYear()} Des Collection LTD</span>
         <span>Style, Quality &amp; Elegance</span>
