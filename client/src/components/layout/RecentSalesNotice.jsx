@@ -25,31 +25,46 @@ export default function RecentSalesNotice() {
     let hideTimer;
     let nextTimer;
     let mounted = true;
+    let lastUserActivity = Date.now();
+    const noteUserActivity = () => { lastUserActivity = Date.now(); };
+    window.addEventListener('pointerdown', noteUserActivity, { passive: true });
+    window.addEventListener('keydown', noteUserActivity);
 
     const showNext = () => {
       if (!mounted) return;
+      const activeElement = document.activeElement;
+      const userIsEnteringData = activeElement?.matches('input, textarea, select, [contenteditable="true"]');
+      const userWasRecentlyActive = Date.now() - lastUserActivity < 15000;
+      if (document.hidden || userIsEnteringData || userWasRecentlyActive) {
+        nextTimer = window.setTimeout(showNext, 15000);
+        return;
+      }
+
       setNotice({
+        id: Date.now(),
         shopper: randomItem(shoppers),
         product: randomItem(products),
         hoursAgo: Math.floor(Math.random() * 4) + 1,
       });
       hideTimer = window.setTimeout(() => setNotice(null), 6500);
-      nextTimer = window.setTimeout(showNext, 14000 + Math.floor(Math.random() * 14000));
+      nextTimer = window.setTimeout(showNext, 42000 + Math.floor(Math.random() * 42000));
     };
 
-    const initialTimer = window.setTimeout(showNext, 5000);
+    const initialTimer = window.setTimeout(showNext, 15000);
     return () => {
       mounted = false;
       window.clearTimeout(initialTimer);
       window.clearTimeout(hideTimer);
       window.clearTimeout(nextTimer);
+      window.removeEventListener('pointerdown', noteUserActivity);
+      window.removeEventListener('keydown', noteUserActivity);
     };
   }, [products]);
 
   if (!notice) return null;
 
   return (
-    <aside className="recent-sales-notice" aria-live="polite">
+    <aside key={notice.id} className="recent-sales-notice" aria-live="polite">
       <img src={imageOf(notice.product)} alt="" />
       <p>
         <strong>{notice.shopper.name} - from {notice.shopper.city}</strong>
