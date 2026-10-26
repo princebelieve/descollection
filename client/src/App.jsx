@@ -42,6 +42,21 @@ function ScrollToTop() {
   return null;
 }
 
+function GoogleAnalyticsPageViews() {
+  const { pathname, search, hash } = useLocation();
+
+  useEffect(() => {
+    if (typeof window.gtag !== 'function') return;
+    window.gtag('event', 'page_view', {
+      page_path: `${pathname}${search}${hash}`,
+      page_title: document.title,
+      page_location: window.location.href,
+    });
+  }, [pathname, search, hash]);
+
+  return null;
+}
+
 function DefaultPageMetadata() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -59,7 +74,7 @@ function DefaultPageMetadata() {
 }
 
 export default function App() {
-  return <StoreProvider><ScrollToTop /><DefaultPageMetadata /><StoreHeader /><CartDrawer /><Routes>
+  return <StoreProvider><ScrollToTop /><DefaultPageMetadata /><GoogleAnalyticsPageViews /><StoreHeader /><CartDrawer /><Routes>
     <Route path="/" element={<Home />} />
     <Route path="/shop" element={<ShopRoute />} />
     <Route path="/category/:category" element={<CategoryRoute />} />
