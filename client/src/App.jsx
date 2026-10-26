@@ -2,6 +2,7 @@ import { Route, Routes, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import StoreHeader from './components/layout/Header';
 import Footer from './components/layout/Footer';
+import { InstallAppProvider } from './components/layout/InstallApp';
 import WhatsAppButton from './components/layout/WhatsAppButton';
 import RecentSalesNotice from './components/layout/RecentSalesNotice';
 import CartDrawer from './components/layout/CartDrawer';
@@ -74,7 +75,7 @@ function DefaultPageMetadata() {
 }
 
 export default function App() {
-  return <StoreProvider><ScrollToTop /><DefaultPageMetadata /><GoogleAnalyticsPageViews /><StoreHeader /><CartDrawer /><Routes>
+  return <InstallAppProvider><StoreProvider><ScrollToTop /><DefaultPageMetadata /><GoogleAnalyticsPageViews /><StoreHeader /><CartDrawer /><Routes>
     <Route path="/" element={<Home />} />
     <Route path="/shop" element={<ShopRoute />} />
     <Route path="/category/:category" element={<CategoryRoute />} />
@@ -99,5 +100,5 @@ export default function App() {
     <Route path="/checkout/success" element={<CheckoutResult success />} />
     <Route path="/checkout/cancelled" element={<CheckoutResult success={false} />} />
     <Route path="*" element={<Home />} />
-  </Routes><Footer /><WhatsAppButton /><RecentSalesNotice /></StoreProvider>;
+  </Routes><Footer /><WhatsAppButton /><RecentSalesNotice /></StoreProvider></InstallAppProvider>;
 }

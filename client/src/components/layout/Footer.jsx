@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useInstallApp } from './InstallApp';
 
 const footerGroups = [
   { title: 'Skincare', items: ['Cleanser', 'Creams', 'Face Cream', 'Face Wash', 'Serum', 'Toner'] },
@@ -8,6 +9,8 @@ const footerGroups = [
 ];
 
 export default function Footer() {
+  const { install, installed } = useInstallApp();
+
   return (
     <footer className="store-footer">
       <div className="store-footer-grid">
@@ -29,6 +32,9 @@ export default function Footer() {
             <Link to="/privacy">Privacy notice</Link>
             <Link to="/brands">Brands</Link>
           </nav>
+          <button className="footer-install-button" type="button" onClick={install} disabled={installed}>
+            {installed ? 'App installed' : 'Install app'}
+          </button>
         </section>
 
         {footerGroups.map((group) => (
