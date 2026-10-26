@@ -103,19 +103,17 @@ function HeroCarousel() {
           <div className="home-hero-description">{slide.description}</div>
         </div>}
         {!slide.artwork && <a className="home-hero-scroll" href="#home-content"><ArrowDown size={22} aria-hidden="true" /><span>SCROLL DOWN</span></a>}
-      </section>
-      <div className={`home-carousel-actions${slide.artwork ? ' home-carousel-actions-artwork' : ''}`}>
         {slide.artwork && <Link className="home-hero-artwork-cta" to="/shop">SHOP ONLINE <ArrowRight size={21} aria-hidden="true" /></Link>}
         <div className="home-hero-controls" aria-label="Hero slide controls">
           <div className="home-hero-dots">
             {slides.map((item, index) => (
-              <button key={item.title} className={index === active ? 'active' : ''} onClick={() => showSlide(index)} aria-label={`Show slide ${index + 1}: ${item.title}`} aria-current={index === active ? 'true' : undefined} />
+              <button key={item.image} className={index === active ? 'active' : ''} onClick={() => showSlide(index)} aria-label={`Show slide ${index + 1}: ${item.title || item.alt || item.eyebrow}`} aria-current={index === active ? 'true' : undefined} />
             ))}
           </div>
           <button className="home-hero-arrow" onClick={() => showSlide(active - 1)} aria-label="Previous slide"><ArrowLeft size={20} /></button>
           <button className="home-hero-arrow next" onClick={() => showSlide(active + 1)} aria-label="Next slide"><ArrowRight size={20} /></button>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

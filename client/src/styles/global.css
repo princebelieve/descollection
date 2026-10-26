@@ -636,18 +636,17 @@
 .home-hero-image-artwork{object-fit:contain;object-position:center;background:#171613;animation:none}.home-hero-artwork .home-hero-shade{display:none}
 
 
-/* Keep carousel controls below the artwork and payment marks in the footer. */
-.home-carousel{position:relative}.home-carousel .home-hero-controls{position:relative;top:auto;right:auto;bottom:auto;left:auto;z-index:3;width:max-content;max-width:100%;justify-content:center;margin:14px auto 24px;padding:7px 12px;border:1px solid #d4af37;border-radius:30px;background:#171613}
-.home-carousel-artwork .home-hero-controls{background:#171613;border-color:#d4af37}
+/* Keep the carousel actions layered over the hero, in its original control area. */
+.home-carousel{position:relative}
+.home-carousel .home-hero-controls{z-index:3}
+.home-carousel .home-hero-artwork-cta{position:absolute;z-index:3;left:clamp(30px,8vw,132px);bottom:28px}
 .footer-payment-methods{width:min(100%,1200px);justify-content:center;min-height:70px;margin:0 auto 34px;padding:12px 18px;border:1px solid #d4af37;border-radius:10px;background:#fff;box-shadow:0 8px 24px #0002}
-@media(max-width:600px){.footer-payment-methods{justify-content:flex-start;min-height:58px;margin-bottom:26px;padding:10px 12px}.home-carousel .home-hero-controls{margin:12px auto 20px;padding:5px 8px}}
+@media(max-width:600px){.footer-payment-methods{justify-content:flex-start;min-height:58px;margin-bottom:26px;padding:10px 12px}.home-carousel .home-hero-artwork-cta{left:18px;bottom:18px;min-width:0;min-height:42px;padding:8px 16px;font-size:11px}.home-carousel .home-hero-artwork-cta svg{width:17px;height:17px}}
 
 /* Full-bleed animated campaign slides with a separate Shop Online action. */
 .home-hero-image-artwork{object-fit:cover;animation:home-campaign-drift 9s ease-out both}.home-hero-image-boss{object-position:center 18%}.home-hero-image-header{object-position:center 16%}
 @keyframes home-campaign-drift{from{transform:scale(1.015)}to{transform:scale(1.09)}}
-.home-carousel-actions{display:flex;align-items:center;justify-content:center;gap:24px;width:min(100%,1260px);margin:14px auto 24px;padding:0 20px}.home-carousel-actions .home-hero-controls{margin:0}.home-carousel-actions-artwork{justify-content:space-between}
 .home-hero-artwork-cta{display:inline-flex;align-items:center;justify-content:center;gap:14px;min-width:220px;min-height:56px;padding:12px 24px;border:1px solid #f1dc83;border-radius:32px;background:var(--gold-metal);background-size:220% 100%;color:#211b08;font-size:13px;font-weight:800;letter-spacing:.12em;text-decoration:none;box-shadow:0 5px 18px #0004;transition:background-position .3s,transform .2s,box-shadow .2s}.home-hero-artwork-cta:hover{background-position:100% 0;transform:translateY(-2px);box-shadow:0 8px 22px #0005}.home-hero-artwork-cta:focus-visible{outline:3px solid #171613;outline-offset:3px}
-@media(max-width:600px){.home-carousel-actions{gap:12px;margin:12px auto 20px;padding:0 12px}.home-carousel-actions-artwork{flex-direction:column}.home-hero-artwork-cta{min-width:200px;min-height:52px}.home-carousel-actions .home-hero-controls{margin:0}.home-carousel .home-hero-controls{padding:5px 8px}}
 
 /* Motion and responsive layouts for the campaign hero carousel. */
 @media(prefers-reduced-motion:reduce){.home-hero-image-artwork{animation:none}}
