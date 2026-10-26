@@ -8,6 +8,16 @@ import { imageOf, money, productId } from '../utils/products';
 
 const slides = [
   {
+    image: '/assets/Boss.jpeg',
+    artwork: true,
+    alt: 'Des Collection beauty and lifestyle shop online',
+  },
+  {
+    image: '/assets/Des%20Header.jpeg',
+    artwork: true,
+    alt: 'Des Collection beauty, style and online shop',
+  },
+  {
     image: '/assets/home-hero2.jpeg',
     eyebrow: 'YOUR STYLE, YOUR BEAUTY, YOUR COLLECTION',
     title: 'Beauty for Your Everyday',
@@ -77,10 +87,11 @@ function HeroCarousel() {
   }, [active]);
 
   return (
-    <section className="home-hero" aria-label="Des Collection LTD featured products">
-      <img key={slide.image} className={`home-hero-image${slide.image.endsWith('home-hero2.jpeg') ? ' home-hero-image-2' : slide.image.endsWith('home-hero4.png') ? ' home-hero-image-4' : ''}`} src={slide.image} alt="" />
+    <section className={`home-hero${slide.artwork ? ' home-hero-artwork' : ''}`} aria-label="Des Collection LTD featured products">
+      <img key={slide.image} className={`home-hero-image${slide.artwork ? ' home-hero-image-artwork' : ''}${slide.image.endsWith('home-hero2.jpeg') ? ' home-hero-image-2' : slide.image.endsWith('home-hero4.png') ? ' home-hero-image-4' : ''}`} src={slide.image} alt={slide.artwork ? slide.alt : ''} />
       <div className="home-hero-shade" />
-      <div className="home-hero-copy" key={slide.title}>
+      <Link className="home-hero-shop-link" to="/shop" aria-label="Shop online at Des Collection LTD" />
+      {!slide.artwork && <div className="home-hero-copy" key={slide.title}>
         <span className="home-hero-brand">DES COLLECTION LTD</span>
         <p>{slide.eyebrow}</p>
         <h1>{slide.title}</h1>
@@ -88,8 +99,8 @@ function HeroCarousel() {
           {slide.action}<span><ArrowRight size={20} aria-hidden="true" /></span>
         </Link>
         <div className="home-hero-description">{slide.description}</div>
-      </div>
-      <a className="home-hero-scroll" href="#home-content"><ArrowDown size={22} aria-hidden="true" /><span>SCROLL DOWN</span></a>
+      </div>}
+      {!slide.artwork && <a className="home-hero-scroll" href="#home-content"><ArrowDown size={22} aria-hidden="true" /><span>SCROLL DOWN</span></a>}
       <div className="home-hero-controls" aria-label="Hero slide controls">
         <div className="home-hero-dots">
           {slides.map((item, index) => (

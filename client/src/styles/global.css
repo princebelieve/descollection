@@ -630,3 +630,15 @@
 .install-modal ol{display:grid;gap:13px;margin:0;padding-left:23px;color:#5f585c;font-size:14px;line-height:1.65}.install-modal li::marker{color:var(--plum);font-weight:700}.ios-share-symbol{display:inline-grid;place-items:center;width:21px;height:21px;border:1.5px solid currentColor;border-radius:5px;color:#1677d2;font-size:15px;font-weight:700;line-height:1}
 .install-modal-done{width:100%;margin-top:24px}
 @media(max-width:520px){.install-suggestion{right:16px;bottom:16px;width:calc(100vw - 32px)}.install-modal{padding:38px 23px 25px}}
+
+/* Header payment marks and clickable carousel artwork. */
+.payment-methods-strip{display:flex;align-items:center;justify-content:center;gap:clamp(8px,1.4vw,20px);min-height:48px;padding:6px 18px;border-bottom:1px solid #d4af37;background:#fff;overflow-x:auto;scrollbar-width:none}
+.payment-methods-strip::-webkit-scrollbar{display:none}.payment-methods-heading,.payment-methods-powered{flex:none;color:#5e4917;font-size:10px;font-weight:700;letter-spacing:.12em;white-space:nowrap}
+.payment-methods-powered{padding-left:clamp(4px,1vw,14px);border-left:1px solid #d4af37;text-transform:uppercase;letter-spacing:.06em}
+.payment-method-mark{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:54px;height:30px;padding:3px 8px;border:1px solid #e7dfcb;border-radius:4px;background:#fff;color:#151515;font-size:12px;font-weight:700;line-height:1;text-align:center;white-space:nowrap}
+.payment-visa{color:#1434cb;font-size:15px;font-style:italic}.payment-mastercard{gap:4px;font-size:9px;letter-spacing:-.04em}.payment-mastercard i{width:24px;height:15px;background:radial-gradient(circle at 7px 7.5px,#eb001b 0 7px,transparent 7.5px),radial-gradient(circle at 17px 7.5px,#f79e1b 0 7px,transparent 7.5px)}.payment-amex{background:#2e77bc;color:#fff;font-size:7px;letter-spacing:.04em}.payment-apple{font-size:11px;font-weight:600}.payment-google{font-size:12px;font-weight:500}.payment-google b{margin-right:3px;color:#4285f4;font-size:15px}.payment-link{background:#00d4ff;color:#052b36;font-size:13px;font-weight:700}
+.home-hero-shop-link{position:absolute;inset:0;z-index:0}.home-hero-shop-link:focus-visible{outline:3px solid #d4af37;outline-offset:-5px}.home-hero-copy{z-index:1}.home-hero-scroll,.home-hero-controls{z-index:2}
+.home-hero-image-artwork{object-fit:contain;object-position:center;background:#171613;animation:none}.home-hero-artwork .home-hero-shade{display:none}.home-hero-artwork .home-hero-controls{top:14px;right:14px;bottom:auto;padding:7px 10px;border:1px solid #d4af37;border-radius:28px;background:#171613d9}
+@media(max-width:600px){.payment-methods-strip{justify-content:flex-start;gap:8px;padding-right:14px;padding-left:14px}.payment-methods-heading{font-size:9px}.payment-methods-powered{font-size:9px}.payment-method-mark{min-width:48px;height:28px}.home-hero-artwork .home-hero-controls{top:8px;right:8px;padding:5px 7px}.home-hero-artwork .home-hero-controls .home-hero-arrow{width:32px;height:32px}}
+
+.payment-methods-more{flex:none;color:#777;font-size:10px;white-space:nowrap}
