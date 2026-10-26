@@ -46,16 +46,13 @@ export default function Footer() {
           </details>
         ))}
       </div>
-      <section className="payment-methods-strip footer-payment-methods" aria-label="Secure payment options available at checkout">
-        <span className="payment-methods-heading">SECURE PAYMENTS</span>
-        <span className="payment-method-mark payment-visa">VISA</span>
-        <span className="payment-method-mark payment-mastercard"><i aria-hidden="true" /><b>mastercard</b></span>
-        <span className="payment-method-mark payment-amex">AMERICAN<br />EXPRESS</span>
-        <span className="payment-method-mark payment-apple">Apple Pay</span>
-        <span className="payment-method-mark payment-google"><b>G</b> Pay</span>
-        <span className="payment-method-mark payment-link">Link</span>
+      <section className="footer-payment-methods" aria-label="Secure payment options available at checkout">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4.5 5v6.1c0 5 3.2 9.2 7.5 10.9 4.3-1.7 7.5-5.9 7.5-10.9V5L12 2Zm0 3.1 4.5 1.8v4.2c0 3.5-1.8 6.6-4.5 8.2-2.7-1.6-4.5-4.7-4.5-8.2V6.9L12 5.1Zm-.9 3.2v3h-1v2h1v2.8h1.8v-2.8h1v-2h-1v-3h-1.8Z" /></svg>
+        <div className="footer-payment-copy">
+          <strong>SECURE PAYMENTS</strong>
+          <span>Cards, <b className="paypal-wordmark">PayPal</b> and other eligible payment options</span>
+        </div>
         <span className="payment-methods-powered">Powered by Stripe</span>
-        <span className="payment-methods-more">More options may appear at checkout</span>
       </section>
       <div className="store-footer-bottom">
         <span>© {new Date().getFullYear()} Des Collection LTD</span>
