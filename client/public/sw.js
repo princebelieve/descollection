@@ -1,5 +1,5 @@
-const CACHE_NAME = 'des-collection-shell-v2';
-const APP_SHELL = ['/', '/manifest.webmanifest', '/logo.png', '/logo-192.png', '/apple-touch-icon.png', '/favicon.png'];
+const CACHE_NAME = 'des-collection-shell-v3';
+const APP_SHELL = ['/', '/manifest.webmanifest', '/logo.png', '/logo-192.png', '/pwa-icon-180.png', '/pwa-icon-192.png', '/pwa-icon-512.png', '/favicon.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
