@@ -50,9 +50,19 @@ export default function Footer() {
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4.5 5v6.1c0 5 3.2 9.2 7.5 10.9 4.3-1.7 7.5-5.9 7.5-10.9V5L12 2Zm0 3.1 4.5 1.8v4.2c0 3.5-1.8 6.6-4.5 8.2-2.7-1.6-4.5-4.7-4.5-8.2V6.9L12 5.1Zm-.9 3.2v3h-1v2h1v2.8h1.8v-2.8h1v-2h-1v-3h-1.8Z" /></svg>
         <div className="footer-payment-copy">
           <strong>SECURE PAYMENTS</strong>
-          <span>Cards, <b className="paypal-wordmark">PayPal</b> and other eligible payment options</span>
+          <span>Available payment options appear at checkout</span>
         </div>
-        <span className="payment-methods-powered">Powered by Stripe</span>
+        <div className="payment-methods-powered"><span>POWERED BY</span><b>stripe</b></div>
+        <ul className="payment-method-logos" aria-label="Payment methods">
+          <li className="payment-logo-visa">VISA</li>
+          <li className="payment-logo-mastercard"><i aria-hidden="true" /><span>mastercard</span></li>
+          <li className="payment-logo-paypal">PayPal</li>
+          <li className="payment-logo-amex">AMERICAN<br />EXPRESS</li>
+          <li className="payment-logo-discover">DISCOVER</li>
+          <li className="payment-logo-apple">Apple Pay</li>
+          <li className="payment-logo-google"><b>G</b> Pay</li>
+          <li className="payment-logo-amazon">amazon pay</li>
+        </ul>
       </section>
       <div className="store-footer-bottom">
         <span>© {new Date().getFullYear()} Des Collection LTD</span>
