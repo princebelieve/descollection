@@ -244,6 +244,21 @@ export default function Admin() {
     }
   };
 
+  const sendOrderEmail = async (id) => {
+    setBusyAction(`email:${id}`);
+    try {
+      const response = await fetch(`${API}/api/orders/${id}/notify-email`, { method: 'POST', headers: auth });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Could not email order details');
+      setOrders((current) => current.map((order) => order._id === id ? { ...order, orderEmailNotifiedAt: data.orderEmailNotifiedAt, orderEmailNotificationError: '' } : order));
+      notify('Order details emailed to admins');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusyAction('');
+    }
+  };
+
   const printOrder = (id) => {
     setPrintingOrderId(id);
     window.requestAnimationFrame(() => window.print());
@@ -354,6 +369,7 @@ export default function Admin() {
               <section><h3>Items</h3>{items.length ? <ul>{items.map((item, index) => <li key={`${item.name || item.id}-${index}`}>{item.name || item.description || item.id || 'Item'} × {item.quantity || item.qty || 1}{item.amount != null ? ` · ${money(item.amount)}` : ''}</li>)}</ul> : <p>Items recorded in the payment metadata.</p>}<b>Total: {money(order.amount)}</b></section>
             </div>
             <div className="admin-order-communication">
+              <div className="admin-order-whatsapp"><span>Admin email: {order.orderEmailNotifiedAt ? `sent ${new Date(order.orderEmailNotifiedAt).toLocaleString()}` : order.orderEmailNotificationError ? `failed: ${order.orderEmailNotificationError}` : 'not sent'}</span>{order.status === 'paid' && <button type="button" disabled={busyAction === `email:${order._id}`} onClick={() => sendOrderEmail(order._id)}>{busyAction === `email:${order._id}` ? 'SENDING…' : order.orderEmailNotificationError ? 'RETRY EMAIL' : 'SEND ORDER EMAIL'}</button>}</div>
               <div className="admin-order-whatsapp"><span>Store WhatsApp: {order.whatsappNotifiedAt ? `sent ${new Date(order.whatsappNotifiedAt).toLocaleString()}${order.whatsappDeliveryStatus ? ` · ${order.whatsappDeliveryStatus}` : ''}${order.whatsappDeliveryError ? ` · ${order.whatsappDeliveryError}` : ''}` : order.whatsappNotificationError ? `failed: ${order.whatsappNotificationError}` : 'not configured or not sent'}</span>{order.status === 'paid' && !order.whatsappNotifiedAt && <button type="button" disabled={busyAction === `whatsapp:${order._id}`} onClick={() => sendOrderToWhatsApp(order._id)}>{busyAction === `whatsapp:${order._id}` ? 'SENDING…' : order.whatsappNotificationError ? 'RETRY WHATSAPP' : 'SEND TO WHATSAPP'}</button>}</div>
               {order.customerWhatsappOptIn && <p className="admin-customer-whatsapp">Customer WhatsApp: {order.customerWhatsappNotifiedAt ? `sent${order.customerWhatsappDeliveryStatus ? ` · ${order.customerWhatsappDeliveryStatus}` : ''}${order.customerWhatsappDeliveryError ? ` · ${order.customerWhatsappDeliveryError}` : ''}` : order.customerWhatsappNotificationError ? `failed: ${order.customerWhatsappNotificationError}` : 'opted in; waiting to send'}</p>}
               {order.whatsappReplies?.length > 0 && <div className="admin-whatsapp-replies"><h3>Customer WhatsApp replies</h3>{order.whatsappReplies.map((reply) => <p key={reply.messageId}><time>{new Date(reply.receivedAt).toLocaleString()}</time><span>{reply.text}</span></p>)}</div>}

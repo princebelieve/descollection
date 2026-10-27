@@ -4,6 +4,7 @@ const router = express.Router();
 const Order = require("../models/Order");
 const { protect, adminOnly } = require("../middleware/auth");
 const { sendPaidOrderNotification, isWhatsAppConfigured } = require("../services/whatsapp");
+const { sendPaidOrderEmail } = require("../services/gmail.service");
 
 router.get("/", protect, adminOnly, async (_req, res) => {
   try {
@@ -59,6 +60,26 @@ router.post("/:id/notify-whatsapp", protect, adminOnly, async (req, res) => {
       await order.save().catch(() => {});
     }
     return res.status(502).json({ message: error.message || "WhatsApp notification failed" });
+  }
+});
+
+router.post("/:id/notify-email", protect, adminOnly, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    if (order.status !== "paid") return res.status(400).json({ message: "Only paid orders can be emailed" });
+    await sendPaidOrderEmail(order);
+    order.orderEmailNotifiedAt = new Date();
+    order.orderEmailNotificationError = "";
+    await order.save();
+    return res.json({ orderEmailNotifiedAt: order.orderEmailNotifiedAt });
+  } catch (error) {
+    const order = await Order.findById(req.params.id).catch(() => null);
+    if (order) {
+      order.orderEmailNotificationError = error.message.slice(0, 500);
+      await order.save().catch(() => {});
+    }
+    return res.status(502).json({ message: error.message || "Order email failed" });
   }
 });
 

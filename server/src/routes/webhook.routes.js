@@ -3,6 +3,7 @@ const router = express.Router();
 const stripe = require("../services/stripe");
 const Order = require("../models/Order");
 const { sendPaidOrderNotification, sendCustomerOrderCopy } = require("../services/whatsapp");
+const { sendPaidOrderEmail } = require("../services/gmail.service");
 
 const checkoutEvents = new Set([
   "checkout.session.completed",
@@ -95,6 +96,19 @@ router.post("/", async (req, res) => {
         existingOrder.whatsappNotificationError = error.message.slice(0, 500);
         await existingOrder.save();
         console.error("WhatsApp order notification failed:", error.message);
+      }
+    }
+
+    if (nextStatus === "paid" && !existingOrder.orderEmailNotifiedAt) {
+      try {
+        await sendPaidOrderEmail(existingOrder);
+        existingOrder.orderEmailNotifiedAt = new Date();
+        existingOrder.orderEmailNotificationError = "";
+        await existingOrder.save();
+      } catch (error) {
+        existingOrder.orderEmailNotificationError = error.message.slice(0, 500);
+        await existingOrder.save();
+        console.error("Admin order email failed:", error.message);
       }
     }
 

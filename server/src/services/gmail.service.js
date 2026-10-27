@@ -55,4 +55,46 @@ async function sendGmailMessage({ to, subject, text }) {
   }
 }
 
-module.exports = { sendGmailMessage };
+function getAdminOrderRecipients() {
+  return (process.env.ORDER_NOTIFICATION_EMAILS || process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map((email) => email.trim())
+    .filter(Boolean);
+}
+
+async function sendPaidOrderEmail(order) {
+  const recipients = getAdminOrderRecipients();
+  if (!recipients.length) throw new Error("No admin order email recipients are configured.");
+
+  let items = [];
+  try { items = JSON.parse(order.items || "[]"); } catch { /* Keep sending the order summary if legacy item data is malformed. */ }
+  const address = [order.deliveryAddress, order.deliveryAddress2, order.deliveryCity, order.deliveryState, order.deliveryPostcode, order.deliveryCountry]
+    .filter(Boolean)
+    .join(", ");
+  const orderRef = order.stripeSessionId?.slice(-10)?.toUpperCase() || String(order._id);
+  const itemLines = items.length
+    ? items.map((item) => `- ${item.name || item.description || item.id || "Item"} × ${item.quantity || item.qty || 1}${item.amount != null ? ` (£${Number(item.amount).toFixed(2)})` : ""}`).join("\n")
+    : "Items are recorded in the Stripe order metadata.";
+
+  await sendGmailMessage({
+    to: recipients.join(", "),
+    subject: `New paid order ${orderRef} — Des Collection LTD`,
+    text: [
+      "A new paid order was received.",
+      "",
+      `Order: ${orderRef}`,
+      `Date: ${new Date(order.createdAt || Date.now()).toISOString()}`,
+      `Customer: ${order.customerName || "Not provided"}`,
+      `Email: ${order.customerEmail || "Not provided"}`,
+      `Phone: ${order.customerPhone || "Not provided"}`,
+      `Delivery address: ${address || "Not provided"}`,
+      "",
+      "Items:",
+      itemLines,
+      "",
+      `Total: £${Number(order.amount || 0).toFixed(2)}`,
+    ].join("\n"),
+  });
+}
+
+module.exports = { sendGmailMessage, sendPaidOrderEmail };

@@ -15,6 +15,9 @@ const orderSchema = new mongoose.Schema({
   deliveryPostcode: String,
   deliveryCountry: String,
 
+  orderEmailNotifiedAt: Date,
+  orderEmailNotificationError: String,
+
   stripeSessionId: {
     type: String,
     unique: true,
