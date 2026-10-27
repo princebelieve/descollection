@@ -80,7 +80,6 @@ export default function Header() {
         </div>
         <Link className="logo" to="/" aria-label="Des Collection LTD home"><img src="/assets/des-collection-logo.png" alt="Des Collection LTD" /><span>Des Collection LTD</span><small>-Online Collection-</small></Link>
         <div className="header-group header-group-right">
-          <button className="head-icon app-refresh" type="button" onClick={() => window.location.reload()} aria-label="Refresh app" title="Refresh app"><RotateCw /></button>
           <button className="head-icon cart-head" onClick={() => nav('/cart')} aria-label={`Cart, ${cartCount} items`}><CartIcon /><i>{cartCount}</i></button>
           <Link className="account-head" to={role === 'admin' ? '/admin' : role ? '/account' : '/sign-in'} aria-label={role === 'admin' ? 'Admin dashboard' : role ? 'My account' : 'Sign in'}><UserRound /><span>{role === 'admin' ? 'Admin dashboard' : role ? 'My account' : 'Sign in'}</span></Link>
           {!role && <Link className="signup-head" to="/sign-up">Sign up</Link>}
@@ -106,6 +105,7 @@ export default function Header() {
             </div>
             {role ? <button className="drawer-account-link" type="button" onClick={signOut}><LogOut size={21} />Sign out</button> : <Link className="drawer-account-link" to="/sign-in" onClick={() => setDrawer(false)}><UserRound size={21} />Sign in</Link>}
             {!role && <Link className="drawer-account-link" to="/sign-up" onClick={() => setDrawer(false)}><UserRound size={21} />Create an account</Link>}
+            <button className="drawer-account-link drawer-refresh-button" type="button" onClick={() => window.location.reload()}><RotateCw size={21} />Refresh app</button>
           </aside>
         </div>
       )}

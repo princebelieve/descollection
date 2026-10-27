@@ -653,8 +653,8 @@
 .footer-payment-methods{display:flex;align-items:center;gap:16px;width:min(100%,1200px);min-height:82px;margin:0 auto 34px;padding:14px 24px;border:1px solid #d4af37;border-radius:10px;background:#fff;box-shadow:0 8px 24px #0002;color:#171613}
 .footer-payment-methods>svg{flex:none;width:38px;height:38px;fill:#b88e22}.footer-payment-copy{display:grid;gap:5px;min-width:0}.footer-payment-copy>strong{color:#171613;font-size:12px;letter-spacing:.16em}.footer-payment-copy>span{color:#5e5a50;font-size:13px}.paypal-wordmark{color:#003087;font-style:italic;font-size:15px;letter-spacing:-.04em}.footer-payment-methods .payment-methods-powered{margin-left:auto;padding-left:18px;border-left:1px solid #d4af37;color:#5e4917;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
 @media(max-width:600px){.footer-payment-methods{gap:11px;min-height:72px;margin-bottom:26px;padding:12px 14px}.footer-payment-methods>svg{width:30px;height:30px}.footer-payment-copy>strong{font-size:10px}.footer-payment-copy>span{font-size:11px}.paypal-wordmark{font-size:13px}.footer-payment-methods .payment-methods-powered{padding-left:10px;font-size:9px}}
-.app-refresh{display:none;place-items:center}
-@media(display-mode:standalone){.app-refresh{display:grid}}
+.drawer-refresh-button{display:none;width:100%;border:0;background:transparent;text-align:left;cursor:pointer}
+@media(display-mode:standalone){.drawer-refresh-button{display:flex}}
 .footer-payment-methods{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 22px;min-height:0;padding:18px 24px;border-radius:12px}
 .footer-payment-methods>svg{width:42px;height:42px}
 .footer-payment-copy{grid-column:1;grid-row:1;align-self:center}
