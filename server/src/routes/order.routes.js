@@ -24,6 +24,17 @@ router.get("/latest", protect, adminOnly, async (_req, res) => {
   }
 });
 
+router.delete("/:id", protect, adminOnly, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    await order.deleteOne();
+    return res.json({ deleted: true, id: order._id });
+  } catch (error) {
+    return res.status(500).json({ message: "Could not delete the order" });
+  }
+});
+
 router.post("/:id/notify-whatsapp", protect, adminOnly, async (req, res) => {
   if (!isWhatsAppConfigured()) {
     return res.status(503).json({ message: "WhatsApp Cloud API is not configured on the server" });
@@ -35,6 +46,9 @@ router.post("/:id/notify-whatsapp", protect, adminOnly, async (req, res) => {
     const notification = await sendPaidOrderNotification(order);
     if (!notification.sent) return res.status(503).json({ message: "WhatsApp notification was not sent" });
     order.whatsappNotifiedAt = new Date();
+    order.whatsappMessageId = notification.messageId || "";
+    order.whatsappDeliveryStatus = "sent";
+    order.whatsappStatusUpdatedAt = new Date();
     order.whatsappNotificationError = "";
     await order.save();
     return res.json({ whatsappNotifiedAt: order.whatsappNotifiedAt });

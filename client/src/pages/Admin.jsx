@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LoaderCircle } from 'lucide-react';
+import { LoaderCircle, Printer, Trash2 } from 'lucide-react';
 import { API, categories } from '../data/catalog';
 import { useStore } from '../context/StoreContext';
 import { imageOf, money } from '../utils/products';
@@ -45,6 +45,7 @@ export default function Admin() {
   const [error, setError] = useState('');
   const [posts, setPosts] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [printingOrderId, setPrintingOrderId] = useState('');
   const [postForm, setPostForm] = useState(emptyPost);
   const [postFile, setPostFile] = useState(null);
   const [editPost, setEditPost] = useState(null);
@@ -67,6 +68,13 @@ export default function Admin() {
   useEffect(() => {
     if (isBlogEditor && editPost) scrollToAdminForm(postFormRef);
   }, [isBlogEditor, editPost]);
+
+  useEffect(() => {
+    if (!printingOrderId) return undefined;
+    const finishPrint = () => setPrintingOrderId('');
+    window.addEventListener('afterprint', finishPrint);
+    return () => window.removeEventListener('afterprint', finishPrint);
+  }, [printingOrderId]);
 
   useEffect(() => {
     if (!token) return;
@@ -236,6 +244,27 @@ export default function Admin() {
     }
   };
 
+  const printOrder = (id) => {
+    setPrintingOrderId(id);
+    window.requestAnimationFrame(() => window.print());
+  };
+
+  const deleteOrder = async (order) => {
+    if (!window.confirm(`Permanently delete order ${order.stripeSessionId?.slice(-10) || order._id} from this app? This does not refund or delete the Stripe payment. Continue only if you have confirmed this order should be removed.`)) return;
+    setBusyAction(`delete-order:${order._id}`);
+    try {
+      const response = await fetch(`${API}/api/orders/${order._id}`, { method: 'DELETE', headers: auth });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Could not delete the order');
+      setOrders((current) => current.filter((item) => item._id !== order._id));
+      notify('Order deleted from this app');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusyAction('');
+    }
+  };
+
   if (!token) {
     return (
       <main className="page admin-page">
@@ -316,14 +345,23 @@ export default function Admin() {
           let items = [];
           try { items = JSON.parse(order.items || '[]'); } catch { /* Older orders may contain legacy item IDs. */ }
           const address = [order.deliveryAddress, order.deliveryAddress2, order.deliveryCity, order.deliveryState, order.deliveryPostcode, order.deliveryCountry].filter(Boolean).join(', ');
-          return <article className="admin-order-card" key={order._id}>
-            <header><div><h2>Order {order.stripeSessionId?.slice(-10).toUpperCase() || order._id}</h2><time>{new Date(order.createdAt).toLocaleString()}</time></div><strong className={`admin-order-status status-${order.status}`}>{order.status}</strong></header>
+          const isTestOrder = order.stripeSessionId?.startsWith('cs_test_');
+          return <article className={`admin-order-card${printingOrderId === order._id ? ' print-target' : ''}`} key={order._id}>
+            <header><div>{isTestOrder && <span className="admin-order-test-label">STRIPE TEST ORDER</span>}<h2>Order {order.stripeSessionId?.slice(-10).toUpperCase() || order._id}</h2><time>{new Date(order.createdAt).toLocaleString()}</time></div><strong className={`admin-order-status status-${order.status}`}>{order.status}</strong></header>
             <div className="admin-order-columns">
               <section><h3>Customer</h3><p>{order.customerName || 'Name not provided'}</p><p>{order.customerEmail || 'Email not provided'}</p><p>{order.customerPhone || 'Phone not provided'}</p></section>
               <section><h3>Delivery address</h3><p>{address || 'No delivery address recorded'}</p></section>
               <section><h3>Items</h3>{items.length ? <ul>{items.map((item, index) => <li key={`${item.name || item.id}-${index}`}>{item.name || item.description || item.id || 'Item'} × {item.quantity || item.qty || 1}{item.amount != null ? ` · ${money(item.amount)}` : ''}</li>)}</ul> : <p>Items recorded in the payment metadata.</p>}<b>Total: {money(order.amount)}</b></section>
             </div>
-            <div className="admin-order-whatsapp"><span>WhatsApp notification: {order.whatsappNotifiedAt ? `sent ${new Date(order.whatsappNotifiedAt).toLocaleString()}` : order.whatsappNotificationError ? `failed: ${order.whatsappNotificationError}` : 'not configured or not sent'}</span>{order.status === 'paid' && !order.whatsappNotifiedAt && <button type="button" disabled={busyAction === `whatsapp:${order._id}`} onClick={() => sendOrderToWhatsApp(order._id)}>{busyAction === `whatsapp:${order._id}` ? 'SENDING…' : order.whatsappNotificationError ? 'RETRY WHATSAPP' : 'SEND TO WHATSAPP'}</button>}</div>
+            <div className="admin-order-communication">
+              <div className="admin-order-whatsapp"><span>Store WhatsApp: {order.whatsappNotifiedAt ? `sent ${new Date(order.whatsappNotifiedAt).toLocaleString()}${order.whatsappDeliveryStatus ? ` · ${order.whatsappDeliveryStatus}` : ''}${order.whatsappDeliveryError ? ` · ${order.whatsappDeliveryError}` : ''}` : order.whatsappNotificationError ? `failed: ${order.whatsappNotificationError}` : 'not configured or not sent'}</span>{order.status === 'paid' && !order.whatsappNotifiedAt && <button type="button" disabled={busyAction === `whatsapp:${order._id}`} onClick={() => sendOrderToWhatsApp(order._id)}>{busyAction === `whatsapp:${order._id}` ? 'SENDING…' : order.whatsappNotificationError ? 'RETRY WHATSAPP' : 'SEND TO WHATSAPP'}</button>}</div>
+              {order.customerWhatsappOptIn && <p className="admin-customer-whatsapp">Customer WhatsApp: {order.customerWhatsappNotifiedAt ? `sent${order.customerWhatsappDeliveryStatus ? ` · ${order.customerWhatsappDeliveryStatus}` : ''}${order.customerWhatsappDeliveryError ? ` · ${order.customerWhatsappDeliveryError}` : ''}` : order.customerWhatsappNotificationError ? `failed: ${order.customerWhatsappNotificationError}` : 'opted in; waiting to send'}</p>}
+              {order.whatsappReplies?.length > 0 && <div className="admin-whatsapp-replies"><h3>Customer WhatsApp replies</h3>{order.whatsappReplies.map((reply) => <p key={reply.messageId}><time>{new Date(reply.receivedAt).toLocaleString()}</time><span>{reply.text}</span></p>)}</div>}
+            </div>
+            <div className="admin-order-actions">
+              <button type="button" onClick={() => printOrder(order._id)}><Printer size={16} /> PRINT ORDER</button>
+              <button type="button" disabled={busyAction === `delete-order:${order._id}`} onClick={() => deleteOrder(order)}><Trash2 size={16} /> {busyAction === `delete-order:${order._id}` ? 'DELETING…' : 'DELETE ORDER'}</button>
+            </div>
           </article>;
         }) : <p className="shipping-empty">No Stripe orders have been recorded yet.</p>}
       </section>}

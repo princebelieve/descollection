@@ -14,6 +14,7 @@ export default function Checkout() {
   const [shippingZones, setShippingZones] = useState([]);
   const [shippingCountry, setShippingCountry] = useState('');
   const [customer, setCustomer] = useState({ name: '', email: '' });
+  const [whatsappOrderCopy, setWhatsappOrderCopy] = useState(false);
   const [account, setAccount] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [authNotice, setAuthNotice] = useState('');
@@ -124,6 +125,7 @@ export default function Checkout() {
         body: JSON.stringify({
           items: cart.map(({ id, qty }) => ({ id, qty })),
           customer,
+          whatsappOrderCopy,
           shippingCountry,
           uiMode: stripePublishableKey ? 'embedded' : 'hosted',
         }),
@@ -182,6 +184,10 @@ export default function Checkout() {
               {shippingLoading && <p className="checkout-country-status">Loading delivery countries…</p>}
               {shippingError && <p className="checkout-inline-error" role="alert">{shippingError}</p>}
               {error && <p className="checkout-inline-error" role="alert">{error}</p>}
+              <label className="checkout-whatsapp-optin">
+                <input type="checkbox" checked={whatsappOrderCopy} onChange={(event) => setWhatsappOrderCopy(event.target.checked)} />
+                <span>Send me a copy of my order confirmation from Des Collection LTD on WhatsApp. This is optional.</span>
+              </label>
               <button className="shop-now checkout-start" type="button" onClick={startPayment} disabled={busy || missingPrice || shippingLoading || Boolean(shippingError) || !selectedDestination}>
                 {busy ? <><LoaderCircle className="button-spinner" size={18} /> PREPARING SECURE CHECKOUT...</> : <><LockKeyhole size={17} /> CONTINUE TO PAYMENT</>}
               </button>

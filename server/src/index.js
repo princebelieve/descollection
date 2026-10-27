@@ -13,6 +13,7 @@ const connectDB = require("./config/db");
 
 const paymentRoutes = require("./routes/payment.routes");
 const webhookRoutes = require("./routes/webhook.routes");
+const whatsappWebhookRoutes = require("./routes/whatsapp-webhook.routes");
 const productRoutes = require("./routes/product.routes");
 const orderRoutes = require("./routes/order.routes");
 const authRoutes = require("./routes/auth.routes"); // ✅ ADD THIS
@@ -33,6 +34,13 @@ app.use(
   "/api/webhook",
   express.raw({ type: "application/json" }),
   webhookRoutes,
+);
+
+// Meta WhatsApp callbacks need the original raw body for signature validation.
+app.use(
+  "/api/whatsapp/webhook",
+  express.raw({ type: "application/json" }),
+  whatsappWebhookRoutes,
 );
 
 // middleware

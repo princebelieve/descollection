@@ -63,7 +63,7 @@ router.get("/session-status/:sessionId", async (req, res) => {
 // Cart checkout: prices are always read from MongoDB on the server.
 router.post("/create-cart-session", async (req, res) => {
   try {
-    const { items, customer, uiMode, shippingCountry } = req.body;
+    const { items, customer, uiMode, shippingCountry, whatsappOrderCopy } = req.body;
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: "Your cart is empty" });
     }
@@ -118,6 +118,8 @@ router.post("/create-cart-session", async (req, res) => {
       mode: "payment",
       metadata: {
         items: JSON.stringify(normalized),
+        whatsappOrderCopy: whatsappOrderCopy === true ? "true" : "false",
+        ...(whatsappOrderCopy === true ? { whatsappOrderCopyAt: new Date().toISOString() } : {}),
       },
       line_items,
       allow_promotion_codes: true,

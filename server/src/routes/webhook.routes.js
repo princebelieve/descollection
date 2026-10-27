@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const stripe = require("../services/stripe");
 const Order = require("../models/Order");
-const { sendPaidOrderNotification } = require("../services/whatsapp");
+const { sendPaidOrderNotification, sendCustomerOrderCopy } = require("../services/whatsapp");
 
 const checkoutEvents = new Set([
   "checkout.session.completed",
@@ -41,9 +41,14 @@ router.post("/", async (req, res) => {
     const orderDetails = {
       productId: metadata.productId || "",
       items: metadata.items || "",
+      customerWhatsappOptIn: metadata.whatsappOrderCopy === "true",
+      ...(metadata.whatsappOrderCopy === "true" && metadata.whatsappOrderCopyAt
+        ? { customerWhatsappOptInAt: new Date(metadata.whatsappOrderCopyAt) }
+        : {}),
       customerName: metadata.customerName || shipping.name || customer.name || "",
       customerEmail: customer.email || session.customer_email || "",
       customerPhone: metadata.customerPhone || customer.phone || "",
+      customerPhoneDigits: String(metadata.customerPhone || customer.phone || "").replace(/\D/g, ""),
       deliveryAddress: metadata.deliveryAddress || [address.line1, address.line2].filter(Boolean).join(", "),
       deliveryAddress2: metadata.deliveryAddress2 || "",
       deliveryCity: metadata.deliveryCity || address.city || "",
@@ -80,6 +85,9 @@ router.post("/", async (req, res) => {
         const notification = await sendPaidOrderNotification(existingOrder);
         if (notification.sent) {
           existingOrder.whatsappNotifiedAt = new Date();
+          existingOrder.whatsappMessageId = notification.messageId || "";
+          existingOrder.whatsappDeliveryStatus = "sent";
+          existingOrder.whatsappStatusUpdatedAt = new Date();
           existingOrder.whatsappNotificationError = "";
           await existingOrder.save();
         }
@@ -87,6 +95,24 @@ router.post("/", async (req, res) => {
         existingOrder.whatsappNotificationError = error.message.slice(0, 500);
         await existingOrder.save();
         console.error("WhatsApp order notification failed:", error.message);
+      }
+    }
+
+    if (nextStatus === "paid" && existingOrder.customerWhatsappOptIn && !existingOrder.customerWhatsappNotifiedAt) {
+      try {
+        const notification = await sendCustomerOrderCopy(existingOrder);
+        if (notification.sent) {
+          existingOrder.customerWhatsappNotifiedAt = new Date();
+          existingOrder.customerWhatsappMessageId = notification.messageId || "";
+          existingOrder.customerWhatsappDeliveryStatus = "sent";
+          existingOrder.customerWhatsappStatusUpdatedAt = new Date();
+          existingOrder.customerWhatsappNotificationError = "";
+          await existingOrder.save();
+        }
+      } catch (error) {
+        existingOrder.customerWhatsappNotificationError = error.message.slice(0, 500);
+        await existingOrder.save();
+        console.error("Customer WhatsApp order copy failed:", error.message);
       }
     }
 
