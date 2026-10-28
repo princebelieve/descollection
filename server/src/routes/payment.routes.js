@@ -63,6 +63,8 @@ router.get("/session-status/:sessionId", async (req, res) => {
 // Cart checkout: prices are always read from MongoDB on the server.
 router.post("/create-cart-session", async (req, res) => {
   try {
+    const siteStatus = await StoreSettings.findOne({ key: "store" }).select("site");
+    if (siteStatus?.site?.maintenance || siteStatus?.site?.blockCheckout) return res.status(503).json({ message: "Checkout is temporarily unavailable. Please check back shortly." });
     const { items, customer, uiMode, shippingCountry, whatsappOrderCopy } = req.body;
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: "Your cart is empty" });
@@ -145,6 +147,8 @@ router.post("/create-cart-session", async (req, res) => {
 
 router.post("/create-checkout-session", async (req, res) => {
   try {
+    const siteStatus = await StoreSettings.findOne({ key: "store" }).select("site");
+    if (siteStatus?.site?.maintenance || siteStatus?.site?.blockCheckout) return res.status(503).json({ message: "Checkout is temporarily unavailable. Please check back shortly." });
     const { productId, shippingCountry } = req.body;
 
     const product = await Product.findById(productId);

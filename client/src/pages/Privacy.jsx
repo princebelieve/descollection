@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import PolicyLinks from '../components/layout/PolicyLinks';
 
 export default function Privacy() {
   return (
@@ -45,6 +46,7 @@ export default function Privacy() {
       <h2>Cookies and updates</h2>
       <p>The shop uses browser local storage for the functions described above. You can clear this data through your browser settings, though this may remove your saved basket or sign-in session. We may update this notice when our practices or legal requirements change. The current version will be published here.</p>
       <p>See also our <Link to="/terms">Terms and conditions</Link>.</p>
+      <PolicyLinks />
     </main>
   );
 }

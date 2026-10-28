@@ -4,6 +4,7 @@ const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
 const { sendGmailMessage } = require("../services/gmail.service");
 const { verifyGoogleCredential } = require("../services/googleIdentity.service");
+const StoreSettings = require("../models/StoreSettings");
 
 const adminEmails = (process.env.ADMIN_EMAILS || "")
   .split(",")
@@ -27,6 +28,9 @@ async function registerUser(req, res) {
     const name = String(req.body.name || "").trim();
     const email = String(req.body.email || "").trim().toLowerCase();
     const password = String(req.body.password || "");
+
+    const site = (await StoreSettings.findOne({ key: "store" }))?.site;
+    if (site?.blockSignUp && !adminEmails.includes(email)) return res.status(503).json({ message: "New account registration is temporarily unavailable." });
 
     if (!name || !email || password.length < 8) {
       return res.status(400).json({ message: "Enter your name, a valid email, and a password with at least 8 characters." });
@@ -113,6 +117,8 @@ async function loginUser(req, res) {
     } else if (!user.emailVerified) {
       return res.status(403).json({ message: "Confirm your email before signing in. Check your inbox for the confirmation link." });
     }
+    const site = (await StoreSettings.findOne({ key: "store" }))?.site;
+    if (site?.blockSignIn && user.role !== "admin") return res.status(503).json({ message: "Customer sign-in is temporarily unavailable." });
     return res.json(accountResponse(user));
   } catch (err) {
     return res.status(500).json({ message: "We could not sign you in. Please try again." });
@@ -182,6 +188,8 @@ async function googleSignIn(req, res) {
     }
 
     const email = claims.email.trim().toLowerCase();
+    const site = (await StoreSettings.findOne({ key: "store" }))?.site;
+    if (site?.blockSignIn && !adminEmails.includes(email)) return res.status(503).json({ message: "Customer sign-in is temporarily unavailable." });
     let user = await User.findOne({ $or: [{ googleId: claims.sub }, { email }] });
     if (user && user.googleId && user.googleId !== claims.sub) {
       return res.status(409).json({ message: "This email is linked to a different Google account." });

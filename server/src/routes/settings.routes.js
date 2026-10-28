@@ -1,6 +1,8 @@
 const express = require("express");
 const StoreSettings = require("../models/StoreSettings");
 const { protect, adminOnly } = require("../middleware/auth");
+const upload = require("../middleware/upload");
+const { uploadToR2 } = require("../config/r2");
 
 const router = express.Router();
 
@@ -8,9 +10,40 @@ router.get("/", async (_req, res) => {
   try {
     const settings = await StoreSettings.findOne({ key: "store" });
     const deliveryFee = settings?.deliveryFee ?? 0;
-    res.json({ deliveryFee, shippingZones: settings?.shippingZones?.length ? settings.shippingZones : [{ name: "United Kingdom", countries: ["GB"], fee: deliveryFee }] });
+    res.json({ deliveryFee, shippingZones: settings?.shippingZones?.length ? settings.shippingZones : [{ name: "United Kingdom", countries: ["GB"], fee: deliveryFee }], site: settings?.site?.toObject?.() || settings?.site || {} });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+});
+
+router.put("/site", protect, adminOnly, upload.single("banner"), async (req, res) => {
+  try {
+    const current = (await StoreSettings.findOne({ key: "store" }))?.site?.toObject?.() || {};
+    const body = req.body;
+    const booleanFields = ["maintenance", "blockSignIn", "blockSignUp", "blockCheckout"];
+    const site = { ...current };
+    for (const field of booleanFields) {
+      if (body[field] !== undefined) site[field] = body[field] === "true" || body[field] === true;
+    }
+    for (const field of ["title", "message", "launchDate"]) {
+      if (body[field] !== undefined) site[field] = String(body[field]).trim().slice(0, field === "message" ? 500 : 120);
+    }
+    if (body.colors !== undefined) {
+      const colors = typeof body.colors === "string" ? JSON.parse(body.colors) : body.colors;
+      const allowed = ["accent", "header", "footer", "body", "card", "text", "metal"];
+      if (!colors || typeof colors !== "object" || Array.isArray(colors) || Object.entries(colors).some(([key, value]) => !allowed.includes(key) || !/^#[\da-f]{6}$/i.test(value))) {
+        return res.status(400).json({ message: "Choose valid six-digit hex colours." });
+      }
+      site.colors = { ...(current.colors || {}), ...colors };
+    }
+    if (req.file) {
+      if (!req.file.mimetype.startsWith("image/")) return res.status(400).json({ message: "Upload an image for the maintenance banner." });
+      site.banner = await uploadToR2(req.file, "maintenance");
+    } else if (body.removeBanner === "true") site.banner = "";
+    const settings = await StoreSettings.findOneAndUpdate({ key: "store" }, { $set: { site } }, { new: true, upsert: true, runValidators: true });
+    res.json(settings.site?.toObject?.() || settings.site);
+  } catch (err) {
+    res.status(400).json({ message: err instanceof SyntaxError ? "Invalid colour settings." : err.message || "Could not save site settings." });
   }
 });
 

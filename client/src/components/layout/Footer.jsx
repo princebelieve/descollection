@@ -30,6 +30,9 @@ export default function Footer() {
             <Link to="/contact">Contact us</Link>
             <Link to="/terms">Terms &amp; conditions</Link>
             <Link to="/privacy">Privacy notice</Link>
+            <Link to="/returns-refunds">Returns and refunds</Link>
+            <Link to="/shipping">Shipping policy</Link>
+            <Link to="/disclaimer">Disclaimer</Link>
             <Link to="/brands">Brands</Link>
           </nav>
           <button className="footer-install-button" type="button" onClick={install} disabled={installed}>

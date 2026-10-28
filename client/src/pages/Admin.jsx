@@ -24,14 +24,15 @@ const scrollToPageTop = () => window.scrollTo({ top: 0, left: 0, behavior: 'smoo
 const scrollToAdminForm = (formRef) => requestAnimationFrame(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
 
 export default function Admin() {
-  const { products, setProducts, delivery, setDelivery, notify } = useStore();
+  const { products, setProducts, delivery, setDelivery, notify, setSiteSettings: setLiveSiteSettings } = useStore();
   const location = useLocation();
   const navigate = useNavigate();
   const section = location.pathname.split('/')[2] || 'products';
-  const validSections = ['products', 'product-form', 'shipping', 'orders', 'blog', 'articles'];
+  const validSections = ['products', 'product-form', 'shipping', 'orders', 'blog', 'articles', 'setup'];
   const isProducts = section === 'products';
   const isProductForm = section === 'product-form';
   const isShipping = section === 'shipping';
+  const isSiteSetup = section === 'setup';
   const isOrders = section === 'orders';
   const isBlogEditor = section === 'blog';
   const isBlogArticles = section === 'articles';
@@ -45,12 +46,15 @@ export default function Admin() {
   const [error, setError] = useState('');
   const [posts, setPosts] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [printingOrderId, setPrintingOrderId] = useState('');
+  const [printingOrderIds, setPrintingOrderIds] = useState([]);
+  const [selectedOrderIds, setSelectedOrderIds] = useState([]);
   const [postForm, setPostForm] = useState(emptyPost);
   const [postFile, setPostFile] = useState(null);
   const [editPost, setEditPost] = useState(null);
   const [busyAction, setBusyAction] = useState('');
   const [shippingZones, setShippingZones] = useState([{ name: 'United Kingdom', countries: ['GB'], fee: delivery }]);
+  const [siteSettings, setSiteSettings] = useState({ maintenance: false, blockSignIn: false, blockSignUp: false, blockCheckout: false, title: 'We’ll be back soon', message: 'We’re making a few improvements. Please check back shortly.', launchDate: '', banner: '', colors: { accent: '#98721b', header: '#ffffff', footer: '#080808', body: '#ffffff', card: '#ffffff', text: '#211f20', metal: '#d4af37' } });
+  const [bannerFile, setBannerFile] = useState(null);
   const [zoneDraft, setZoneDraft] = useState(null);
   const [editingZoneIndex, setEditingZoneIndex] = useState(null);
   const [countrySelection, setCountrySelection] = useState('');
@@ -70,16 +74,17 @@ export default function Admin() {
   }, [isBlogEditor, editPost]);
 
   useEffect(() => {
-    if (!printingOrderId) return undefined;
-    const finishPrint = () => setPrintingOrderId('');
+    if (!printingOrderIds.length) return undefined;
+    const finishPrint = () => setPrintingOrderIds([]);
     window.addEventListener('afterprint', finishPrint);
     return () => window.removeEventListener('afterprint', finishPrint);
-  }, [printingOrderId]);
+  }, [printingOrderIds]);
 
   useEffect(() => {
     if (!token) return;
     fetch(`${API}/api/settings`).then((response) => response.ok ? response.json() : null).then((data) => {
       if (data?.shippingZones?.length) setShippingZones(data.shippingZones);
+      if (data?.site) setSiteSettings((current) => ({ ...current, ...data.site, colors: { ...current.colors, ...(data.site.colors || {}) } }));
     }).catch(() => {});
     fetch(`${API}/api/blog/admin`, { headers: { Authorization: `Bearer ${token}` } })
       .then(async (response) => {
@@ -98,6 +103,20 @@ export default function Admin() {
         .catch((err) => setError(err.message));
     }
   }, [token, isOrders]);
+
+  const saveSiteSettings = async (event) => {
+    event.preventDefault(); setBusyAction('site');
+    const body = new FormData();
+    Object.entries(siteSettings).forEach(([key, value]) => body.append(key, key === 'colors' ? JSON.stringify(value) : String(value ?? '')));
+    if (bannerFile) body.append('banner', bannerFile);
+    else if (!siteSettings.banner) body.append('removeBanner', 'true');
+    try {
+      const response = await fetch(`${API}/api/settings/site`, { method: 'PUT', headers: auth, body });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Could not save site setup');
+      setSiteSettings((current) => ({ ...current, ...data, colors: { ...current.colors, ...(data.colors || {}) } })); setLiveSiteSettings((current) => ({ ...current, ...data })); setBannerFile(null); notify('Site setup saved');
+    } catch (err) { setError(err.message); } finally { setBusyAction(''); }
+  };
 
   const loginAdmin = async (event) => {
     event.preventDefault();
@@ -260,7 +279,13 @@ export default function Admin() {
   };
 
   const printOrder = (id) => {
-    setPrintingOrderId(id);
+    setPrintingOrderIds([id]);
+    window.requestAnimationFrame(() => window.print());
+  };
+
+  const printSelectedOrders = () => {
+    if (!selectedOrderIds.length) return;
+    setPrintingOrderIds(selectedOrderIds);
     window.requestAnimationFrame(() => window.print());
   };
 
@@ -272,6 +297,7 @@ export default function Admin() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Could not delete the order');
       setOrders((current) => current.filter((item) => item._id !== order._id));
+      setSelectedOrderIds((current) => current.filter((id) => id !== order._id));
       notify('Order deleted from this app');
     } catch (err) {
       setError(err.message);
@@ -302,12 +328,13 @@ export default function Admin() {
         <Link to="/admin/product-form" aria-current={isProductForm ? 'page' : undefined}>Add product</Link>
         <Link to="/admin/products" aria-current={isProducts ? 'page' : undefined}>Products</Link>
         <Link to="/admin/shipping" aria-current={isShipping ? 'page' : undefined}>Shipping settings</Link>
+        <Link to="/admin/setup" aria-current={isSiteSetup ? 'page' : undefined}>Site setup</Link>
         <Link to="/admin/orders" aria-current={isOrders ? 'page' : undefined}>Orders</Link>
         <Link to="/admin/blog" aria-current={isBlogEditor ? 'page' : undefined}>Create blog post</Link>
         <Link to="/admin/articles" aria-current={isBlogArticles ? 'page' : undefined}>Blog articles</Link>
       </aside>
       <div className="admin-dashboard-content">
-      <h1>{isProducts ? 'Products' : isProductForm ? (edit ? 'Edit product' : 'Add product') : isShipping ? 'Shipping settings' : isOrders ? 'Orders' : isBlogEditor ? 'Create blog post' : 'Blog articles'}</h1>
+      <h1>{isProducts ? 'Products' : isProductForm ? (edit ? 'Edit product' : 'Add product') : isShipping ? 'Shipping settings' : isSiteSetup ? 'Site setup' : isOrders ? 'Orders' : isBlogEditor ? 'Create blog post' : 'Blog articles'}</h1>
       {isOrders && error && <p className="error" role="alert">{error}</p>}
       {(isProducts || isProductForm) && <>
       <p>Manage live product names, categories, photos, prices and discounts.</p>
@@ -356,13 +383,18 @@ export default function Admin() {
       </>}
       {isOrders && <section className="admin-orders" aria-label="Customer orders">
         <p>Paid and pending Stripe orders, including the delivery address entered during checkout.</p>
+        {orders.length > 0 && <div className="admin-order-bulk-actions">
+          <label><input type="checkbox" checked={orders.every((order) => selectedOrderIds.includes(order._id))} onChange={(event) => setSelectedOrderIds(event.target.checked ? orders.map((order) => order._id) : [])} /> Select all {orders.length} orders</label>
+          <span>{selectedOrderIds.length} selected</span>
+          <button type="button" disabled={!selectedOrderIds.length} onClick={printSelectedOrders}><Printer size={16} /> PRINT SELECTED ({selectedOrderIds.length})</button>
+        </div>}
         {orders.length ? orders.map((order) => {
           let items = [];
           try { items = JSON.parse(order.items || '[]'); } catch { /* Older orders may contain legacy item IDs. */ }
           const address = [order.deliveryAddress, order.deliveryAddress2, order.deliveryCity, order.deliveryState, order.deliveryPostcode, order.deliveryCountry].filter(Boolean).join(', ');
           const isTestOrder = order.stripeSessionId?.startsWith('cs_test_');
-          return <article className={`admin-order-card${printingOrderId === order._id ? ' print-target' : ''}`} key={order._id}>
-            <header><div>{isTestOrder && <span className="admin-order-test-label">STRIPE TEST ORDER</span>}<h2>Order {order.stripeSessionId?.slice(-10).toUpperCase() || order._id}</h2><time>{new Date(order.createdAt).toLocaleString()}</time></div><strong className={`admin-order-status status-${order.status}`}>{order.status}</strong></header>
+          return <article className={`admin-order-card${printingOrderIds.includes(order._id) ? ' print-target' : ''}`} key={order._id}>
+            <header><label className="admin-order-select"><input type="checkbox" checked={selectedOrderIds.includes(order._id)} onChange={(event) => setSelectedOrderIds((current) => event.target.checked ? [...current, order._id] : current.filter((id) => id !== order._id))} /><span>Select</span></label><div>{isTestOrder && <span className="admin-order-test-label">STRIPE TEST ORDER</span>}<h2>Order {order.stripeSessionId?.slice(-10).toUpperCase() || order._id}</h2><time>{new Date(order.createdAt).toLocaleString()}</time></div><strong className={`admin-order-status status-${order.status}`}>{order.status}</strong></header>
             <div className="admin-order-columns">
               <section><h3>Customer</h3><p>{order.customerName || 'Name not provided'}</p><p>{order.customerEmail || 'Email not provided'}</p><p>{order.customerPhone || 'Phone not provided'}</p></section>
               <section><h3>Delivery address</h3><p>{address || 'No delivery address recorded'}</p></section>
@@ -403,6 +435,19 @@ export default function Admin() {
         <button className="shop-now" type="button" disabled={busyAction === 'delivery' || shippingZones.length === 0 || Boolean(zoneDraft)} onClick={saveDelivery}>{busyAction === 'delivery' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING...</> : 'SAVE SHIPPING SETTINGS'}</button>
       </section>
       </>}
+      {isSiteSetup && <form className="admin-form site-setup-form" onSubmit={saveSiteSettings}>
+        <h2>Store availability</h2><p>Pause customer access while keeping this admin dashboard and admin sign-in available.</p>
+        {[["maintenance", "Show maintenance page to visitors"], ["blockSignIn", "Pause customer sign-in"], ["blockSignUp", "Pause new account sign-up"], ["blockCheckout", "Pause checkout"]].map(([key, label]) => <label className="site-setting-toggle" key={key}><input type="checkbox" checked={Boolean(siteSettings[key])} onChange={(event) => setSiteSettings({ ...siteSettings, [key]: event.target.checked })} /> {label}</label>)}
+        <h2>Maintenance page</h2>
+        <label>Headline<input maxLength="120" value={siteSettings.title || ''} onChange={(event) => setSiteSettings({ ...siteSettings, title: event.target.value })} /></label>
+        <label>Message<textarea maxLength="500" rows="4" value={siteSettings.message || ''} onChange={(event) => setSiteSettings({ ...siteSettings, message: event.target.value })} /></label>
+        <label>Expected return date<input type="text" placeholder="For example, 5 November 2026" value={siteSettings.launchDate || ''} onChange={(event) => setSiteSettings({ ...siteSettings, launchDate: event.target.value })} /></label>
+        <label>Maintenance banner image<input type="file" accept="image/*" onChange={(event) => setBannerFile(event.target.files?.[0] || null)} /></label>
+        {siteSettings.banner && <div className="site-banner-preview"><img src={siteSettings.banner} alt="Maintenance banner preview" /><button type="button" onClick={() => { setSiteSettings({ ...siteSettings, banner: '' }); setBannerFile(null); }}>REMOVE BANNER</button></div>}
+        <h2>Store colours</h2><p>Colour changes preserve the existing metallic gold gradients.</p>
+        <div className="site-colour-grid">{[["accent", "Site accent"], ["header", "Header"], ["footer", "Footer"], ["body", "Page background"], ["card", "Cards and panels"], ["text", "Text"], ["metal", "Metallic gold"]].map(([key, label]) => <label key={key}>{label}<input type="color" value={siteSettings.colors?.[key] || '#ffffff'} onChange={(event) => setSiteSettings({ ...siteSettings, colors: { ...siteSettings.colors, [key]: event.target.value } })} /></label>)}</div>
+        <p className="error" role="alert">{error}</p><button className="shop-now" disabled={busyAction === 'site'}>{busyAction === 'site' ? 'SAVING…' : 'SAVE SITE SETUP'}</button>
+      </form>}
       {isBlogEditor && <>
       <form id="blog-editor" ref={postFormRef} className="admin-form blog-studio" onSubmit={savePost}>
         <h2>{editPost ? 'Edit article' : 'Blog content studio'}</h2>
