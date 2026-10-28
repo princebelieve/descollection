@@ -13,6 +13,7 @@ const loadSavedCategories = () => {
   catch { return []; }
 };
 const emptyPost = { title: '', excerpt: '', content: '', published: false };
+const defaultSiteColors = { accent: '#98721b', header: '#ffffff', footer: '#080808', body: '#ffffff', card: '#ffffff', text: '#211f20', metal: '#d4af37' };
 const otherCountry = '__other_country__';
 const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
 const nonCountryRegions = new Set(['EU', 'EZ', 'UN', 'QO', 'XA', 'XB']);
@@ -53,7 +54,7 @@ export default function Admin() {
   const [editPost, setEditPost] = useState(null);
   const [busyAction, setBusyAction] = useState('');
   const [shippingZones, setShippingZones] = useState([{ name: 'United Kingdom', countries: ['GB'], fee: delivery }]);
-  const [siteSettings, setSiteSettings] = useState({ maintenance: false, blockSignIn: false, blockSignUp: false, blockCheckout: false, title: 'We’ll be back soon', message: 'We’re making a few improvements. Please check back shortly.', launchDate: '', banner: '', colors: { accent: '#98721b', header: '#ffffff', footer: '#080808', body: '#ffffff', card: '#ffffff', text: '#211f20', metal: '#d4af37' } });
+  const [siteSettings, setSiteSettings] = useState({ maintenance: false, blockSignIn: false, blockSignUp: false, blockCheckout: false, title: 'We’ll be back soon', message: 'We’re making a few improvements. Please check back shortly.', launchDate: '', banner: '', font: 'manrope', theme: 'classic', colors: {} });
   const [bannerFile, setBannerFile] = useState(null);
   const [zoneDraft, setZoneDraft] = useState(null);
   const [editingZoneIndex, setEditingZoneIndex] = useState(null);
@@ -445,7 +446,12 @@ export default function Admin() {
         <label>Maintenance banner image<input type="file" accept="image/*" onChange={(event) => setBannerFile(event.target.files?.[0] || null)} /></label>
         {siteSettings.banner && <div className="site-banner-preview"><img src={siteSettings.banner} alt="Maintenance banner preview" /><button type="button" onClick={() => { setSiteSettings({ ...siteSettings, banner: '' }); setBannerFile(null); }}>REMOVE BANNER</button></div>}
         <h2>Store colours</h2><p>Colour changes preserve the existing metallic gold gradients.</p>
-        <div className="site-colour-grid">{[["accent", "Site accent"], ["header", "Header"], ["footer", "Footer"], ["body", "Page background"], ["card", "Cards and panels"], ["text", "Text"], ["metal", "Metallic gold"]].map(([key, label]) => <label key={key}>{label}<input type="color" value={siteSettings.colors?.[key] || '#ffffff'} onChange={(event) => setSiteSettings({ ...siteSettings, colors: { ...siteSettings.colors, [key]: event.target.value } })} /></label>)}</div>
+        <div className="site-colour-grid">{[["accent", "Site accent"], ["header", "Header"], ["footer", "Footer"], ["body", "Page background"], ["card", "Cards and panels"], ["text", "Text"], ["metal", "Metallic gold"]].map(([key, label]) => <label key={key}>{label}<input type="color" value={siteSettings.colors?.[key] || defaultSiteColors[key]} onChange={(event) => setSiteSettings({ ...siteSettings, colors: { ...siteSettings.colors, [key]: event.target.value } })} /></label>)}</div>
+        <h2>Typography and visual style</h2>
+        <p>These options change the typeface and surface styling only. They leave your saved colour choices and metallic gradients intact.</p>
+        <label>Site font<select value={siteSettings.font || 'manrope'} onChange={(event) => setSiteSettings({ ...siteSettings, font: event.target.value })}><option value="manrope">Manrope (current)</option><option value="system">System sans-serif</option><option value="arial">Arial</option><option value="trebuchet">Trebuchet</option><option value="georgia">Georgia</option></select></label>
+        <label>Visual theme<select value={siteSettings.theme || 'classic'} onChange={(event) => setSiteSettings({ ...siteSettings, theme: event.target.value })}><option value="classic">Classic (current appearance)</option><option value="soft">Soft corners</option><option value="editorial">Editorial</option></select></label>
+        <div className={`site-style-preview site-theme-${siteSettings.theme || 'classic'}`} style={{ fontFamily: ({ manrope: "Manrope,'DM Sans',Arial,sans-serif", system: "system-ui,sans-serif", arial: "Arial,sans-serif", trebuchet: "'Trebuchet MS',sans-serif", georgia: "Georgia,serif" })[siteSettings.font] || "Manrope,sans-serif" }}><span>PREVIEW · DES COLLECTION</span><strong>Beauty, selected with care</strong><p>Theme preview — your existing gold accents remain metallic.</p><button type="button">SHOP NOW</button></div>
         <p className="error" role="alert">{error}</p><button className="shop-now" disabled={busyAction === 'site'}>{busyAction === 'site' ? 'SAVING…' : 'SAVE SITE SETUP'}</button>
       </form>}
       {isBlogEditor && <>

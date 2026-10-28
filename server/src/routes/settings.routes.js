@@ -28,6 +28,16 @@ router.put("/site", protect, adminOnly, upload.single("banner"), async (req, res
     for (const field of ["title", "message", "launchDate"]) {
       if (body[field] !== undefined) site[field] = String(body[field]).trim().slice(0, field === "message" ? 500 : 120);
     }
+    const fonts = ["manrope", "system", "arial", "trebuchet", "georgia"];
+    const themes = ["classic", "soft", "editorial"];
+    if (body.font !== undefined) {
+      if (!fonts.includes(body.font)) return res.status(400).json({ message: "Choose one of the available site fonts." });
+      site.font = body.font;
+    }
+    if (body.theme !== undefined) {
+      if (!themes.includes(body.theme)) return res.status(400).json({ message: "Choose one of the available visual themes." });
+      site.theme = body.theme;
+    }
     if (body.colors !== undefined) {
       const colors = typeof body.colors === "string" ? JSON.parse(body.colors) : body.colors;
       const allowed = ["accent", "header", "footer", "body", "card", "text", "metal"];

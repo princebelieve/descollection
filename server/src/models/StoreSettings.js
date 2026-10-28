@@ -17,6 +17,8 @@ module.exports = mongoose.model("StoreSettings", new mongoose.Schema({
     message: { type: String, default: "We’re making a few improvements. Please check back shortly." },
     launchDate: { type: String, default: "" },
     banner: { type: String, default: "" },
+    font: { type: String, default: "manrope" },
+    theme: { type: String, default: "classic" },
     colors: { type: mongoose.Schema.Types.Mixed, default: {} },
   },
 }));

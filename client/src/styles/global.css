@@ -722,3 +722,19 @@ body{background:var(--site-body,#fff);color:var(--site-text,#211f20)}
 .site-banner-preview{display:grid;gap:10px;margin:12px 0 20px}
 .site-banner-preview img{width:min(520px,100%);max-height:260px;object-fit:contain;border:1px solid var(--line);border-radius:8px}
 .site-setup-form h2{margin-top:28px}
+
+/* Typography and non-destructive visual styles: these never replace the palette. */
+body,body button,body input,body select,body textarea{font-family:var(--site-font,"Manrope","DM Sans",Arial,sans-serif)}
+:root[data-site-theme="soft"] .product-card,:root[data-site-theme="soft"] .home-brand,:root[data-site-theme="soft"] .home-cats a,:root[data-site-theme="soft"] .maintenance-card,:root[data-site-theme="soft"] .store-footer-group,:root[data-site-theme="soft"] .site-setup-form,:root[data-site-theme="soft"] .cart-drawer,:root[data-site-theme="soft"] .product-photo{border-radius:18px}
+:root[data-site-theme="soft"] .product-card,:root[data-site-theme="soft"] .maintenance-card{box-shadow:0 12px 34px #00000012}
+:root[data-site-theme="editorial"] h1,:root[data-site-theme="editorial"] h2,:root[data-site-theme="editorial"] h3,:root[data-site-theme="editorial"] .product-name,:root[data-site-theme="editorial"] .section-title h2{font-family:Georgia,"Times New Roman",serif;letter-spacing:-.02em}
+:root[data-site-theme="editorial"] .product-card,:root[data-site-theme="editorial"] .home-brand,:root[data-site-theme="editorial"] .maintenance-card{border-radius:3px;box-shadow:none}
+.site-style-preview{display:grid;gap:9px;max-width:540px;margin:20px 0;padding:22px;border:1px solid var(--line);border-radius:12px;background:var(--site-card,#fff);color:var(--site-text,#211f20)}
+.site-style-preview>span{color:var(--site-accent,#98721b);font-size:10px;font-weight:800;letter-spacing:.14em}
+.site-style-preview>strong{font-size:23px}
+.site-style-preview>p{margin:0;line-height:1.5}
+.site-style-preview>button{justify-self:start;border:1px solid #a98018;border-radius:4px;padding:10px 16px;background:var(--gold-metal);background-size:220% 100%;font-weight:700}
+.site-style-preview.site-theme-soft{border-radius:20px;box-shadow:0 12px 34px #0002}
+.site-style-preview.site-theme-soft>button{border-radius:24px}
+.site-style-preview.site-theme-editorial{border-radius:3px;box-shadow:none}
+.site-style-preview.site-theme-editorial>strong{font-family:Georgia,'Times New Roman',serif}
