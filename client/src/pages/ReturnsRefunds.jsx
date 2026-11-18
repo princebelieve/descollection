@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import PolicyLinks from '../components/layout/PolicyLinks';
+import StaticContentPage from '../components/layout/StaticContentPage';
 import { API } from '../data/catalog';
 
 export default function ReturnsRefunds() {
@@ -12,7 +12,12 @@ export default function ReturnsRefunds() {
   }, []);
 
   return (
-    <main className="page text-page legal-page">
+    <StaticContentPage slug="returns-refunds" afterContent={shippingZones.length > 0 ? (
+      <section className="cms-live-returns">
+        <h2>Change-of-mind return costs by delivery area</h2>
+        <ul>{shippingZones.map((zone) => <li key={zone.name}><strong>{zone.name}:</strong> {zone.changeOfMindReturnCost || 'Contact us before ordering to confirm any applicable direct return cost. We will not charge a return cost that was not disclosed before purchase.'}</li>)}</ul>
+      </section>
+    ) : null}>
       <p className="kicker">CUSTOMER INFORMATION</p>
       <h1>Returns and refunds policy</h1>
       <p><strong>Effective date: 18 November 2026</strong></p>
@@ -51,8 +56,7 @@ export default function ReturnsRefunds() {
       <p>If you purchase an item online and subsequently change your mind, you may have the right to cancel your order under the Consumer Contracts Regulations 2013. For most online purchases, you generally have 14 days from the day after receiving the goods to notify us that you wish to cancel. After notifying us, you normally have a further 14 days to return the goods.</p>
       <p>The cancellation right is subject to certain legal exceptions, including some personalised goods and certain sealed goods that are unsuitable for return for health protection or hygiene reasons once unsealed.</p>
       <h3>Conditions for change-of-mind returns</h3>
-      <p>To cancel, email <a href="mailto:sales@descollection.co.uk">sales@descollection.co.uk</a> or write to us at the contact address in our Terms and Conditions. You do not need to give a reason. Unless we offer to collect the goods, send them back within 14 days after telling us you are cancelling. Our returns address is Des Collection Ltd, 312 Moston Lane, Manchester, M40 9WB. We will tell you before you place your order if you must pay the direct cost of a change-of-mind return, including the cost or calculation method for goods that cannot normally be returned by post. You may inspect goods as you would in a shop. We may deduct for diminished value caused by handling beyond what is needed to establish the goods’ nature, characteristics and functioning only where permitted by law and where we gave you the required cancellation information.</p>
-      {shippingZones.length > 0 && <ul>{shippingZones.map((zone) => <li key={zone.name}><strong>{zone.name}:</strong> {zone.changeOfMindReturnCost || 'Contact us before ordering to confirm any applicable direct return cost. We will not charge a return cost that was not disclosed before purchase.'}</li>)}</ul>}
+      <p>To cancel, email <a href="mailto:sales@descollection.co.uk">sales@descollection.co.uk</a> or write to us at the contact address in our Terms and Conditions. You do not need to give a reason. Unless we offer to collect the goods, send them back within 14 days after telling us you are cancelling. Our returns address is Des Collection Ltd, 312 Moston Lane, Manchester, M40 9WB. The applicable direct cost of a change-of-mind return, including an estimate for goods that cannot normally be returned by post, is listed below and shown before you pay. You may inspect goods as you would in a shop. We may deduct for diminished value caused by handling beyond what is needed to establish the goods’ nature, characteristics and functioning only where permitted by law and where we gave you the required cancellation information.</p>
 
       <h2>5. Items that may not be eligible for change-of-mind returns</h2>
       <p>The change-of-mind exception for hygiene applies only to goods that are sealed, unsuitable for return on health or hygiene grounds, and unsealed after delivery. The personalised-goods exception applies only to goods made to your specifications or clearly personalised. We will flag applicable exceptions before purchase. These exceptions do not remove your remedies for faulty goods.</p>
@@ -93,7 +97,6 @@ export default function ReturnsRefunds() {
       <p>We may update this policy for future orders. The version in force when you place your order applies to that order, and an update does not affect your statutory rights.</p>
       <p>We appreciate your trust in Des Collection Ltd and will do our best to resolve genuine product and delivery issues fairly, professionally, and efficiently.</p>
       <p>Des Collection Ltd — Your destination for fashion, beauty, and accessories.</p>
-      <PolicyLinks />
-    </main>
+    </StaticContentPage>
   );
 }

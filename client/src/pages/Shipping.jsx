@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import PolicyLinks from '../components/layout/PolicyLinks';
+import StaticContentPage from '../components/layout/StaticContentPage';
 import { API } from '../data/catalog';
 
 const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
@@ -14,7 +14,12 @@ export default function Shipping() {
   }, []);
 
   return (
-    <main className="page text-page legal-page">
+    <StaticContentPage slug="shipping" afterContent={zones.length > 0 ? (
+      <section className="cms-live-shipping">
+        <h2>Delivery estimates by destination</h2>
+        <ul>{zones.map((zone) => <li key={zone.name}><strong>{zone.name} ({zone.countries.map((code) => regionNames.of(code) || code).join(', ')}):</strong> {zone.deliveryEstimate || 'Without undue delay and within 30 days of the contract.'}</li>)}</ul>
+      </section>
+    ) : null}>
       <p className="kicker">CUSTOMER INFORMATION</p>
       <h1>Shipping policy</h1>
       <p>At Des Collection Ltd (Descollection.co.uk), we aim to deliver your orders safely and promptly. We arrange delivery with the courier and handle delivery problems with them.</p>
@@ -24,7 +29,6 @@ export default function Shipping() {
 
       <h2>Delivery times</h2>
       <p>Delivery estimates by destination are shown below. We will deliver without undue delay and within 30 days of the contract being made unless we agree a different delivery period with you before the contract is made. The delivery countries and any restrictions that apply will be shown before you order.</p>
-      {zones.length > 0 && <ul>{zones.map((zone) => <li key={zone.name}><strong>{zone.name} ({zone.countries.map((code) => regionNames.of(code) || code).join(', ')}):</strong> {zone.deliveryEstimate || 'Without undue delay and within 30 days of the contract.'}</li>)}</ul>}
 
       <h2>Shipping charges</h2>
       <p>We will show the delivery charge for your selected destination before you place your order.</p>
@@ -40,7 +44,6 @@ export default function Shipping() {
 
       <p>We may update this policy for future orders. The version in force when you place your order applies to that order, and an update does not affect your statutory rights.</p>
       <p>For further assistance, please contact Des Collection Ltd through Descollection.co.uk.</p>
-      <PolicyLinks />
-    </main>
+    </StaticContentPage>
   );
 }

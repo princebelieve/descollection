@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import PolicyLinks from '../components/layout/PolicyLinks';
+import StaticContentPage from '../components/layout/StaticContentPage';
 
 export default function Terms() {
   return (
-    <main className="page text-page legal-page">
+    <StaticContentPage slug="terms">
       <p className="kicker">CUSTOMER INFORMATION</p>
       <h1>Terms and conditions</h1>
       <p><strong>Last updated: 18 November 2026</strong></p>
@@ -40,7 +40,6 @@ export default function Terms() {
       <h2>Privacy, changes and governing law</h2>
       <p>Our <Link to="/privacy">Privacy notice</Link> explains how we use personal information. We may update these terms for future orders by publishing a revised version here; the version in force when you order applies to that order. These terms are governed by the law of England and Wales. If you live elsewhere in the UK, you may also benefit from mandatory protections and bring proceedings in your local courts.</p>
       <p>For help or a complaint, contact us first at <a href="mailto:sales@descollection.co.uk">sales@descollection.co.uk</a>. We will work with you to resolve the issue.</p>
-      <PolicyLinks />
-    </main>
+    </StaticContentPage>
   );
 }

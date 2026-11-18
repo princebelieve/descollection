@@ -5,6 +5,7 @@ import { API, categories } from '../data/catalog';
 import { useStore } from '../context/StoreContext';
 import { imageOf, money } from '../utils/products';
 import PasswordInput from '../components/PasswordInput';
+import StaticPagesAdmin from './StaticPagesAdmin';
 
 const emptyProduct = { name: '', category: '', price: '', originalPrice: '', description: '' };
 const specifyCategory = '__specify_category__';
@@ -29,10 +30,11 @@ export default function Admin() {
   const location = useLocation();
   const navigate = useNavigate();
   const section = location.pathname.split('/')[2] || 'products';
-  const validSections = ['products', 'product-form', 'shipping', 'orders', 'blog', 'articles', 'setup'];
+  const validSections = ['products', 'product-form', 'shipping', 'pages', 'orders', 'blog', 'articles', 'setup'];
   const isProducts = section === 'products';
   const isProductForm = section === 'product-form';
   const isShipping = section === 'shipping';
+  const isStaticPages = section === 'pages';
   const isSiteSetup = section === 'setup';
   const isOrders = section === 'orders';
   const isBlogEditor = section === 'blog';
@@ -329,13 +331,15 @@ export default function Admin() {
         <Link to="/admin/product-form" aria-current={isProductForm ? 'page' : undefined}>Add product</Link>
         <Link to="/admin/products" aria-current={isProducts ? 'page' : undefined}>Products</Link>
         <Link to="/admin/shipping" aria-current={isShipping ? 'page' : undefined}>Shipping settings</Link>
+        <Link to="/admin/pages" aria-current={isStaticPages ? 'page' : undefined}>Pages</Link>
         <Link to="/admin/setup" aria-current={isSiteSetup ? 'page' : undefined}>Site setup</Link>
         <Link to="/admin/orders" aria-current={isOrders ? 'page' : undefined}>Orders</Link>
         <Link to="/admin/blog" aria-current={isBlogEditor ? 'page' : undefined}>Create blog post</Link>
         <Link to="/admin/articles" aria-current={isBlogArticles ? 'page' : undefined}>Blog articles</Link>
       </aside>
       <div className="admin-dashboard-content">
-      <h1>{isProducts ? 'Products' : isProductForm ? (edit ? 'Edit product' : 'Add product') : isShipping ? 'Shipping settings' : isSiteSetup ? 'Site setup' : isOrders ? 'Orders' : isBlogEditor ? 'Create blog post' : 'Blog articles'}</h1>
+      <h1>{isProducts ? 'Products' : isProductForm ? (edit ? 'Edit product' : 'Add product') : isShipping ? 'Shipping settings' : isStaticPages ? 'Pages' : isSiteSetup ? 'Site setup' : isOrders ? 'Orders' : isBlogEditor ? 'Create blog post' : 'Blog articles'}</h1>
+      {isStaticPages && <StaticPagesAdmin token={token} />}
       {isOrders && error && <p className="error" role="alert">{error}</p>}
       {(isProducts || isProductForm) && <>
       <p>Manage live product names, categories, photos, prices and discounts.</p>

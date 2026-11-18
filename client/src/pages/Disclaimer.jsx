@@ -1,8 +1,8 @@
-import PolicyLinks from '../components/layout/PolicyLinks';
+import StaticContentPage from '../components/layout/StaticContentPage';
 
 export default function Disclaimer() {
   return (
-    <main className="page text-page legal-page">
+    <StaticContentPage slug="disclaimer">
       <p className="kicker">CUSTOMER INFORMATION</p>
       <h1>Disclaimer</h1>
       <p><strong>Effective date: 18 November 2026</strong></p>
@@ -50,7 +50,6 @@ export default function Disclaimer() {
       <p>If you have any questions regarding this Disclaimer, our products, brand references, or intellectual property matters, please contact us through the contact information provided on our website.</p>
       <p><strong>Business name:</strong> Des Collection Ltd<br /><strong>Website:</strong> Descollection.co.uk</p>
       <p>Des Collection Ltd — Your destination for fashion, beauty, and accessories.</p>
-      <PolicyLinks />
-    </main>
+    </StaticContentPage>
   );
 }

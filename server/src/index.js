@@ -17,10 +17,10 @@ const whatsappWebhookRoutes = require("./routes/whatsapp-webhook.routes");
 const productRoutes = require("./routes/product.routes");
 const orderRoutes = require("./routes/order.routes");
 const authRoutes = require("./routes/auth.routes"); // ✅ ADD THIS
-const measurementRoutes = require("./routes/measurementRoutes");
 const settingsRoutes = require("./routes/settings.routes");
 const blogRoutes = require("./routes/blog.routes");
 const sitemapRoutes = require("./routes/sitemap.routes");
+const pagesRoutes = require("./routes/pages.routes");
 
 const app = express();
 
@@ -87,8 +87,8 @@ app.use("/api/auth", authRoutes); // ✅ ADD THIS
 app.use("/api/payments", paymentRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
-app.use("/api/measurements", measurementRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/pages", pagesRoutes);
 app.use("/api/blog", blogRoutes);
 
 app.get("/", (req, res) => {
