@@ -54,10 +54,12 @@ export default function StaticPagesAdmin({ token }) {
   const [bootstrapSlug, setBootstrapSlug] = useState('');
   const iframeRef = useRef(null);
   const editorRef = useRef(null);
+  const bootstrapTimerRef = useRef(null);
   const activePage = pages.find((page) => page.slug === slug) || pages[0];
   const current = pages.find((page) => page.slug === bootstrapSlug);
 
   const loadPage = useCallback(async (nextSlug) => {
+    window.clearTimeout(bootstrapTimerRef.current);
     setSlug(nextSlug);
     setContent('');
     setStatus('draft');
@@ -90,23 +92,36 @@ export default function StaticPagesAdmin({ token }) {
 
   useEffect(() => { loadPage(pages[0].slug); }, [loadPage]);
 
+  useEffect(() => () => window.clearTimeout(bootstrapTimerRef.current), []);
+
   useEffect(() => {
     if (!loading && !preview && mode === 'visual' && editorRef.current) editorRef.current.innerHTML = content;
   }, [loading, mode, preview, slug]);
 
   const captureCurrentPage = () => {
-    try {
-      const body = iframeRef.current?.contentDocument?.querySelector('.cms-editable-body');
-      if (!body) throw new Error('Could not load the current page content. Try again.');
-      setContent(sanitizePageHtml(body.innerHTML));
-      setStatus('draft');
-      setLoading(false);
-      setBootstrapSlug('');
-    } catch (captureError) {
-      setError(captureError.message || 'Could not read the current page content.');
-      setLoading(false);
-      setBootstrapSlug('');
-    }
+    let attempts = 0;
+    const capture = () => {
+      try {
+        const body = iframeRef.current?.contentDocument?.querySelector('.cms-editable-body');
+        if (!body && attempts < 40) {
+          attempts += 1;
+          bootstrapTimerRef.current = window.setTimeout(capture, 100);
+          return;
+        }
+        if (!body) throw new Error('The policy page did not finish loading. Refresh and try again.');
+        window.clearTimeout(bootstrapTimerRef.current);
+        setContent(sanitizePageHtml(body.innerHTML));
+        setStatus('draft');
+        setLoading(false);
+        setBootstrapSlug('');
+      } catch (captureError) {
+        window.clearTimeout(bootstrapTimerRef.current);
+        setError(captureError.message || 'Could not read the current page content.');
+        setLoading(false);
+        setBootstrapSlug('');
+      }
+    };
+    capture();
   };
 
   const runCommand = (command) => {
