@@ -62,6 +62,8 @@ router.put("/", protect, adminOnly, async (req, res) => {
   if (!Array.isArray(shippingZones) || shippingZones.length === 0 || shippingZones.some((zone) =>
     !zone || typeof zone.name !== "string" || !zone.name.trim() || !Array.isArray(zone.countries) ||
     !zone.countries.length || !Number.isFinite(Number(zone.fee)) || Number(zone.fee) < 0 ||
+    (zone.deliveryEstimate != null && (typeof zone.deliveryEstimate !== "string" || zone.deliveryEstimate.length > 160)) ||
+    (zone.changeOfMindReturnCost != null && (typeof zone.changeOfMindReturnCost !== "string" || zone.changeOfMindReturnCost.length > 400)) ||
     zone.countries.some((country) => !/^[A-Z]{2}$/.test(String(country).toUpperCase()))
   )) {
     return res.status(400).json({ message: "Add valid shipping zones, countries and fees" });
@@ -70,6 +72,8 @@ router.put("/", protect, adminOnly, async (req, res) => {
     name: zone.name.trim(),
     countries: [...new Set(zone.countries.map((country) => String(country).trim().toUpperCase()))],
     fee: Number(zone.fee),
+    deliveryEstimate: String(zone.deliveryEstimate || "").trim(),
+    changeOfMindReturnCost: String(zone.changeOfMindReturnCost || "").trim(),
   }));
   const countries = normalizedZones.flatMap((zone) => zone.countries);
   if (new Set(countries).size !== countries.length) {

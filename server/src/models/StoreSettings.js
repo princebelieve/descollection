@@ -7,6 +7,8 @@ module.exports = mongoose.model("StoreSettings", new mongoose.Schema({
     name: { type: String, trim: true },
     countries: [{ type: String, uppercase: true, trim: true }],
     fee: { type: Number, min: 0 },
+    deliveryEstimate: { type: String, trim: true, maxlength: 160, default: "" },
+    changeOfMindReturnCost: { type: String, trim: true, maxlength: 400, default: "" },
   }],
   site: {
     maintenance: { type: Boolean, default: false },

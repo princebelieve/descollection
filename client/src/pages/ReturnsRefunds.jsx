@@ -1,11 +1,21 @@
+import { useEffect, useState } from 'react';
 import PolicyLinks from '../components/layout/PolicyLinks';
+import { API } from '../data/catalog';
 
 export default function ReturnsRefunds() {
+  const [shippingZones, setShippingZones] = useState([]);
+
+  useEffect(() => {
+    fetch(`${API}/api/settings`).then((response) => response.ok ? response.json() : null)
+      .then((data) => setShippingZones(Array.isArray(data?.shippingZones) ? data.shippingZones : []))
+      .catch(() => {});
+  }, []);
+
   return (
     <main className="page text-page legal-page">
       <p className="kicker">CUSTOMER INFORMATION</p>
       <h1>Returns and refunds policy</h1>
-      <p><strong>Effective date: 28 October 2026</strong></p>
+      <p><strong>Effective date: 18 November 2026</strong></p>
       <p>At Des Collection Ltd, we want every customer shopping at Descollection.co.uk to have a positive shopping experience. We take care to ensure that orders are processed correctly and products are delivered in satisfactory condition.</p>
       <p>However, if you receive an incorrect, damaged, faulty, or otherwise unsuitable item, we are committed to handling your complaint fairly and in accordance with applicable UK consumer protection laws.</p>
       <p>Please read our Returns and Refunds Policy below.</p>
@@ -21,36 +31,36 @@ export default function ReturnsRefunds() {
         <li>Keep the item and its original packaging until we advise you on the next steps.</li>
       </ul>
       <h3>What we will do</h3>
-      <p>After reviewing your complaint, we will explain the available resolution. Depending on the circumstances and your legal rights, we may arrange a replacement with the correct item, subject to availability; a return and full refund; or another appropriate remedy agreed with you.</p>
-      <p>You will not be charged for returning an item that was delivered incorrectly. We will explain how the return will be arranged.</p>
+      <p>If goods are faulty, damaged on arrival or do not match your order, you can usually reject them for a refund within 30 days of delivery. Please tell us what went wrong. Photographs and packaging can help us investigate where available, but are not required to exercise your rights. We will arrange collection or explain how to return the goods and cover reasonable return costs in accordance with your statutory rights.</p>
 
       <h2>2. Damaged items on arrival</h2>
       <p>If your order arrives damaged, please contact us as soon as reasonably possible after delivery. This includes broken or cracked products; damaged footwear, bags, jewellery, or accessories; products with significant physical damage that was not disclosed before purchase; items damaged during transportation or delivery; and packaging damage that has also affected the product.</p>
       <h3>What you should do</h3>
       <p>Please contact us with your order number, a description of the damage, and clear photographs showing the damaged product. Include photographs of the outer packaging and shipping label where available. Please retain the damaged product and its packaging until we advise you about the return or collection process.</p>
       <h3>What we will do</h3>
-      <p>Once we have reviewed the information, we will explain the appropriate resolution, which may include a replacement item, subject to availability; a repair, where appropriate and legally applicable; a full refund; or another remedy required by applicable consumer protection law.</p>
+      <p>You can usually reject faulty, damaged or incorrect goods for a refund within 30 days of delivery. After that initial period, repair or replacement is ordinarily the first remedy. If neither is available, one attempt fails, or the remedy is delayed unreasonably or causes significant inconvenience, a price reduction or final right to reject may be available. A fault arising within six months is generally presumed to have existed at delivery unless we show otherwise or the presumption is incompatible with the goods or fault.</p>
       <p>We will arrange or cover reasonable return costs where we are responsible for supplying a damaged or faulty item. Customers will not be required to pay additional charges to correct an order that arrived damaged due to circumstances for which Des Collection Ltd is responsible.</p>
       <p>Your legal rights do not depend on reporting damage within an arbitrary 24- or 48-hour period. However, contacting us promptly helps us investigate delivery-related problems efficiently.</p>
 
       <h2>3. Faulty or defective products</h2>
-      <p>If an item develops a fault or does not meet the standards required by applicable consumer protection law, please contact us with your order details and a description of the problem.</p>
-      <p>Under the UK Consumer Rights Act 2015, goods must meet the applicable requirements of satisfactory quality, fitness for purpose, and conformity with their description. For most faulty goods, UK consumers generally have a 30-day short-term right to reject the goods for a refund, subject to the applicable legal requirements and exceptions. After this period, you may be entitled to a repair or replacement, followed by a price reduction or refund where the law provides for one.</p>
+      <p>If an item develops a fault or does not meet the standards required by applicable consumer protection law, please contact us with your order details and a description of the problem. Photographs may help us investigate where available but are not required to exercise your rights.</p>
+      <p>Under the UK Consumer Rights Act 2015, goods must meet the applicable requirements of satisfactory quality, fitness for purpose, and conformity with their description. You can usually exercise the 30-day short-term right to reject faulty goods for a refund. After that initial period, repair or replacement is ordinarily the first remedy. If neither is available, one attempt fails, or the remedy is delayed unreasonably or causes significant inconvenience, you may be entitled to a price reduction or final right to reject. A fault arising within six months is generally presumed to have existed at delivery unless we show otherwise or the presumption is incompatible with the goods or fault.</p>
       <p>Our team will assess the issue and explain the remedies available under the circumstances. Nothing in this policy limits your statutory consumer rights.</p>
 
       <h2>4. Change of mind and unwanted items</h2>
       <p>If you purchase an item online and subsequently change your mind, you may have the right to cancel your order under the Consumer Contracts Regulations 2013. For most online purchases, you generally have 14 days from the day after receiving the goods to notify us that you wish to cancel. After notifying us, you normally have a further 14 days to return the goods.</p>
       <p>The cancellation right is subject to certain legal exceptions, including some personalised goods and certain sealed goods that are unsuitable for return for health protection or hygiene reasons once unsealed.</p>
       <h3>Conditions for change-of-mind returns</h3>
-      <p>Where a cancellation right applies, items should be returned with reasonable care. You may inspect goods as you would reasonably be permitted to do in a shop. You may be responsible for any diminished value caused by handling beyond what is necessary to establish the goods’ nature, characteristics, and functioning. You may be responsible for the direct cost of returning unwanted goods if we informed you of this responsibility before purchase. Where required by law, we will refund the standard outbound delivery charge as part of a valid cancellation. We will explain any applicable return arrangements when you contact us.</p>
+      <p>To cancel, email <a href="mailto:sales@descollection.co.uk">sales@descollection.co.uk</a> or write to us at the contact address in our Terms and Conditions. You do not need to give a reason. Unless we offer to collect the goods, send them back within 14 days after telling us you are cancelling. Our returns address is Des Collection Ltd, 312 Moston Lane, Manchester, M40 9WB. We will tell you before you place your order if you must pay the direct cost of a change-of-mind return, including the cost or calculation method for goods that cannot normally be returned by post. You may inspect goods as you would in a shop. We may deduct for diminished value caused by handling beyond what is needed to establish the goods’ nature, characteristics and functioning only where permitted by law and where we gave you the required cancellation information.</p>
+      {shippingZones.length > 0 && <ul>{shippingZones.map((zone) => <li key={zone.name}><strong>{zone.name}:</strong> {zone.changeOfMindReturnCost || 'Contact us before ordering to confirm any applicable direct return cost. We will not charge a return cost that was not disclosed before purchase.'}</li>)}</ul>}
 
       <h2>5. Items that may not be eligible for change-of-mind returns</h2>
-      <p>Certain products may be exempt from change-of-mind cancellation rights where a lawful exception applies. Depending on the product and its condition, these may include personalised or custom-made products; sealed products that are unsuitable for return for health protection or hygiene reasons and have been unsealed after delivery; and other goods falling within a specific statutory exception.</p>
+      <p>The change-of-mind exception for hygiene applies only to goods that are sealed, unsuitable for return on health or hygiene grounds, and unsealed after delivery. The personalised-goods exception applies only to goods made to your specifications or clearly personalised. We will flag applicable exceptions before purchase. These exceptions do not remove your remedies for faulty goods.</p>
       <p>This section does not remove your right to a remedy for goods that are faulty, damaged, incorrectly supplied, or not as described.</p>
 
       <h2>6. Refund processing</h2>
-      <p>Once a refund has been approved, we will process it in accordance with applicable law. Unless you agree otherwise, refunds will generally be made using the original payment method.</p>
-      <p>Where the law requires a refund following an online cancellation, we will issue it within the applicable statutory deadline. For most returned goods, this means within 14 days of receiving the goods back or receiving evidence that they have been sent back, whichever happens first. Where appropriate, we may ask you to return the item or provide evidence of return before processing the refund.</p>
+      <p><strong>Statutory cancellation:</strong> We refund without undue delay. If you must send the goods back, the deadline is 14 days after we receive the goods or earlier evidence that you sent them. If we offer to collect the goods, the deadline is 14 days after you tell us you are cancelling. We refund the least expensive qualifying outbound delivery option, use your original payment method unless you expressly agree otherwise, and charge no refund fee.</p>
+      <p><strong>Statutory rejection of non-conforming goods:</strong> We refund without undue delay and within 14 days beginning when we agree that you are entitled to a refund. We use the same payment method unless you expressly agree otherwise and charge no refund fee.</p>
       <p>The time it takes for the refunded amount to appear in your account may depend on your bank, card issuer, or payment provider. We will not charge an administration fee for processing a refund where such a fee would be unlawful.</p>
 
       <h2>7. Exchanges and replacements</h2>
@@ -62,14 +72,14 @@ export default function ReturnsRefunds() {
         <li><strong>Incorrect, damaged, or faulty goods:</strong> Where we are responsible for supplying an incorrect, damaged, or faulty item, we will cover the reasonable return costs where required by law.</li>
         <li><strong>Change-of-mind returns:</strong> Customers may be responsible for direct return postage costs if this was disclosed before the purchase and the law permits us to charge those costs.</li>
       </ul>
-      <p>Please contact us before sending an item back so we can provide the appropriate instructions. Do not send returns to an address that has not been confirmed by our customer service team.</p>
+      <p>You do not need our permission or address confirmation before returning goods after cancellation. Send them to Des Collection Ltd, 312 Moston Lane, Manchester, M40 9WB, unless we offer to collect them or give you a different returns address. The direct return cost information for each delivery zone is listed above and shown again at checkout before payment. If goods cannot normally be returned by post, we will provide an estimate before you order.</p>
 
       <h2>9. Refunds for lost or undelivered orders</h2>
-      <p>If your order has not arrived within the expected delivery period, please contact us with your order number. We will investigate the delivery status with the relevant delivery company or supplier. If the goods have not been delivered, we will work with you to resolve the issue in accordance with applicable law. Depending on the circumstances, you may be entitled to a replacement or refund.</p>
+      <p>If your order has not arrived within the delivery period shown before you placed it, please contact us with your order number. We will investigate with the courier we arranged. If we refuse delivery or miss an essential delivery deadline, you may end the contract immediately. In other cases, you can usually set an appropriate further deadline and end the contract if delivery is still not made. We will refund payments due under the contract without undue delay when it is ended on these grounds.</p>
       <p>A delivery company’s tracking status alone does not remove your statutory rights where the goods have not been delivered as required.</p>
 
       <h2>10. How to request a return or refund</h2>
-      <p>To request a return, replacement, or refund, please contact us through the contact information available on Descollection.co.uk. Please provide your full name used for the order, order number, product name, reason for the return or refund request, and photographs or other supporting evidence where relevant.</p>
+      <p>To cancel an order, email <a href="mailto:sales@descollection.co.uk">sales@descollection.co.uk</a> or write to Des Collection Ltd, 312 Moston Lane, Manchester, M40 9WB, with a clear statement that you wish to cancel. You do not need to give a reason or provide photographs. You may also use the model cancellation form in our <a href="/terms">Terms and Conditions</a>. For a fault, damage or incorrect item, please provide your order number and a description; photographs can help us investigate where available.</p>
       <p>Our team will review your request and provide instructions on the next steps. We aim to respond as promptly as reasonably possible.</p>
 
       <h2>11. Important information</h2>
@@ -80,6 +90,7 @@ export default function ReturnsRefunds() {
       <h2>12. Contact us</h2>
       <p>If you have questions about a return, replacement, or refund, please contact Des Collection Ltd through the contact details published on our website.</p>
       <p><strong>Business name:</strong> Des Collection Ltd<br /><strong>Website:</strong> Descollection.co.uk</p>
+      <p>We may update this policy for future orders. The version in force when you place your order applies to that order, and an update does not affect your statutory rights.</p>
       <p>We appreciate your trust in Des Collection Ltd and will do our best to resolve genuine product and delivery issues fairly, professionally, and efficiently.</p>
       <p>Des Collection Ltd — Your destination for fashion, beauty, and accessories.</p>
       <PolicyLinks />

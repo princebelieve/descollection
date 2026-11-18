@@ -153,6 +153,7 @@ export default function Checkout() {
     <main className="page checkout-page">
       <p className="kicker">SECURE CHECKOUT</p>
       <h1>Checkout</h1>
+      <p className="checkout-secure-note">Payment methods available for your order (such as cards, wallets, or pay-later options) are shown in the secure payment form before you submit payment.</p>
       <div className="checkout-layout">
         <section className="checkout-main" aria-label="Checkout and payment">
           {!clientSecret && (
@@ -191,7 +192,6 @@ export default function Checkout() {
               <button className="shop-now checkout-start" type="button" onClick={startPayment} disabled={busy || missingPrice || shippingLoading || Boolean(shippingError) || !selectedDestination}>
                 {busy ? <><LoaderCircle className="button-spinner" size={18} /> PREPARING SECURE CHECKOUT...</> : <><LockKeyhole size={17} /> CONTINUE TO PAYMENT</>}
               </button>
-              <p className="checkout-secure-note">Secure payment by Stripe. Available payment methods are shown in the payment form.</p>
             </>
           )}
           {clientSecret && (
@@ -208,6 +208,8 @@ export default function Checkout() {
           <h2>Your order</h2>
           {cart.map((row) => <div className="checkout-item" key={row.id}><span>{row.product?.name} × {row.qty}</span><b>{Number(row.product?.price) > 0 ? money(row.product.price * row.qty) : 'Price TBC'}</b></div>)}
           <div className="checkout-totals"><span>Subtotal</span><b>{money(subtotal)}</b><span>Delivery</span><b>{money(delivery)}</b><strong>Total</strong><strong>{money(subtotal + delivery)}</strong></div>
+          <p className="checkout-country-status"><strong>Delivery estimate:</strong> {selectedDestination?.zone.deliveryEstimate || 'Without undue delay and within 30 days of the contract, unless we agree a different period.'}</p>
+          <p className="checkout-country-status"><strong>Change-of-mind return postage:</strong> {selectedDestination?.zone.changeOfMindReturnCost || 'Contact us before ordering to confirm any applicable direct return cost. We will not charge a return cost that was not disclosed before purchase.'}</p>
           <Link to="/cart">EDIT BASKET</Link>
         </aside>
       </div>
