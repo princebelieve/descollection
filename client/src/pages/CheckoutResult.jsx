@@ -62,6 +62,7 @@ export default function CheckoutResult({ success }) {
     'Items:',
     ...(details.items || []).map((item) => `• ${item.name} × ${item.quantity}${item.amount != null ? ` — ${money(item.amount)}` : ''}`),
     `Total paid: ${money((details.amountTotal || 0) / 100)}`,
+    ...(details.deliveryMethod ? [`Delivery method: ${details.deliveryMethod}`] : []),
     `Delivery address: ${addressText || 'Not provided by Stripe'}`,
   ].join('\n') : '';
   const whatsappOrderUrl = `https://wa.me/447440248472?text=${encodeURIComponent(orderMessage)}`;
@@ -103,6 +104,8 @@ export default function CheckoutResult({ success }) {
           <div className="payment-result-receipt">
             <div><span>Order reference</span><strong>{details.sessionId?.slice(-10).toUpperCase()}</strong></div>
             {details.amountTotal != null && <div><span>Paid</span><strong>{money(details.amountTotal / 100)}</strong></div>}
+            {details.deliveryMethod && <div><span>Delivery method</span><strong>{details.deliveryMethod}</strong></div>}
+            {details.deliveryEstimate && <div><span>Delivery estimate</span><strong>{details.deliveryEstimate}</strong></div>}
             {details.customerEmail && <div><span>Confirmation sent to</span><strong>{details.customerEmail}</strong></div>}
             {addressText && <div><span>Delivering to</span><strong>{addressText}</strong></div>}
           </div>

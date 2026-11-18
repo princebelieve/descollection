@@ -14,6 +14,10 @@ const orderSchema = new mongoose.Schema({
   deliveryState: String,
   deliveryPostcode: String,
   deliveryCountry: String,
+  deliveryMethodId: String,
+  deliveryMethodName: String,
+  deliveryEstimate: String,
+  deliveryFee: Number,
 
   orderEmailNotifiedAt: Date,
   orderEmailNotificationError: String,

@@ -11,6 +11,18 @@ const pages = [
   { slug: 'disclaimer', title: 'Disclaimer', path: '/disclaimer' },
 ];
 
+async function readApiResponse(response) {
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.toLowerCase().includes('application/json')) {
+    const body = await response.text();
+    if (body.trimStart().startsWith('<')) {
+      throw new Error(`The page editor API returned an HTML page (HTTP ${response.status}). Check that the latest Des Collection server is deployed and that VITE_API_URL points to it.`);
+    }
+    throw new Error(`The page editor API returned an unexpected response (HTTP ${response.status}).`);
+  }
+  return response.json();
+}
+
 function EditorToolbar({ runCommand, insertLink }) {
   const controls = [
     ['bold', 'Bold', 'B'], ['italic', 'Italic', 'I'], ['underline', 'Underline', 'U'],
@@ -59,7 +71,7 @@ export default function StaticPagesAdmin({ token }) {
     setBootstrapSlug('');
     try {
       const response = await fetch(`${API}/api/pages/admin/${nextSlug}`, { headers: { Authorization: `Bearer ${token}` } });
-      const record = await response.json();
+      const record = await readApiResponse(response);
       if (!response.ok) throw new Error(record.message || 'Could not load this page.');
       if (record) {
         setContent(sanitizePageHtml(record.content));
@@ -133,7 +145,7 @@ export default function StaticPagesAdmin({ token }) {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: cleanContent, status: nextStatus }),
       });
-      const record = await response.json();
+      const record = await readApiResponse(response);
       if (!response.ok) throw new Error(record.message || 'Could not save this page.');
       setContent(record.content);
       setStatus(record.status);

@@ -3,6 +3,7 @@ const StoreSettings = require("../models/StoreSettings");
 const { protect, adminOnly } = require("../middleware/auth");
 const upload = require("../middleware/upload");
 const { uploadToR2 } = require("../config/r2");
+const { shippingMethodsForZone } = require("../utils/shippingMethods");
 
 const router = express.Router();
 
@@ -10,7 +11,12 @@ router.get("/", async (_req, res) => {
   try {
     const settings = await StoreSettings.findOne({ key: "store" });
     const deliveryFee = settings?.deliveryFee ?? 0;
-    res.json({ deliveryFee, shippingZones: settings?.shippingZones?.length ? settings.shippingZones : [{ name: "United Kingdom", countries: ["GB"], fee: deliveryFee }], site: settings?.site?.toObject?.() || settings?.site || {} });
+    const zones = settings?.shippingZones?.length ? settings.shippingZones : [{ name: "United Kingdom", countries: ["GB"], fee: deliveryFee }];
+    const shippingZones = zones.map((zone) => {
+      const value = zone.toObject?.() || zone;
+      return { ...value, methods: shippingMethodsForZone(value) };
+    });
+    res.json({ deliveryFee, shippingZones, site: settings?.site?.toObject?.() || settings?.site || {} });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -64,6 +70,12 @@ router.put("/", protect, adminOnly, async (req, res) => {
     !zone.countries.length || !Number.isFinite(Number(zone.fee)) || Number(zone.fee) < 0 ||
     (zone.deliveryEstimate != null && (typeof zone.deliveryEstimate !== "string" || zone.deliveryEstimate.length > 160)) ||
     (zone.changeOfMindReturnCost != null && (typeof zone.changeOfMindReturnCost !== "string" || zone.changeOfMindReturnCost.length > 400)) ||
+    (zone.methods != null && (!Array.isArray(zone.methods) || zone.methods.length === 0 || zone.methods.some((method) =>
+      !method || typeof method.id !== "string" || !method.id.trim() || method.id.length > 100 ||
+      typeof method.name !== "string" || !method.name.trim() || method.name.length > 100 ||
+      method.fee === "" || !Number.isFinite(Number(method.fee)) || Number(method.fee) < 0 ||
+      (method.deliveryEstimate != null && (typeof method.deliveryEstimate !== "string" || method.deliveryEstimate.length > 160))
+    ))) ||
     zone.countries.some((country) => !/^[A-Z]{2}$/.test(String(country).toUpperCase()))
   )) {
     return res.status(400).json({ message: "Add valid shipping zones, countries and fees" });
@@ -74,7 +86,17 @@ router.put("/", protect, adminOnly, async (req, res) => {
     fee: Number(zone.fee),
     deliveryEstimate: String(zone.deliveryEstimate || "").trim(),
     changeOfMindReturnCost: String(zone.changeOfMindReturnCost || "").trim(),
+    methods: shippingMethodsForZone(zone).map((method) => ({
+      id: method.id.trim(),
+      name: method.name.trim(),
+      fee: Number(method.fee),
+      deliveryEstimate: String(method.deliveryEstimate || "").trim(),
+    })),
   }));
+  if (normalizedZones.some((zone) => new Set(zone.methods.map(({ id }) => id)).size !== zone.methods.length)) {
+    return res.status(400).json({ message: "Each delivery method in a zone must have a unique identifier." });
+  }
+  normalizedZones.forEach((zone) => { zone.fee = zone.methods[0].fee; });
   const countries = normalizedZones.flatMap((zone) => zone.countries);
   if (new Set(countries).size !== countries.length) {
     return res.status(400).json({ message: "A country can only belong to one shipping zone" });

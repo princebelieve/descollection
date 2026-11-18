@@ -56,6 +56,10 @@ router.post("/", async (req, res) => {
       deliveryState: metadata.deliveryState || address.state || "",
       deliveryPostcode: metadata.deliveryPostcode || address.postal_code || "",
       deliveryCountry: metadata.deliveryCountry || address.country || "",
+      deliveryMethodId: metadata.deliveryMethodId || "",
+      deliveryMethodName: metadata.deliveryMethodName || "",
+      deliveryEstimate: metadata.deliveryEstimate || "",
+      deliveryFee: Number(metadata.deliveryFee || 0),
       stripeSessionId: session.id,
       amount: Number(session.amount_total || 0) / 100,
     };

@@ -6,6 +6,7 @@ import { useStore } from '../context/StoreContext';
 import { imageOf, money } from '../utils/products';
 import PasswordInput from '../components/PasswordInput';
 import StaticPagesAdmin from './StaticPagesAdmin';
+import '../styles/shippingMethods.css';
 
 const emptyProduct = { name: '', category: '', price: '', originalPrice: '', description: '' };
 const specifyCategory = '__specify_category__';
@@ -16,6 +17,13 @@ const loadSavedCategories = () => {
 const emptyPost = { title: '', excerpt: '', content: '', published: false };
 const defaultSiteColors = { accent: '#98721b', header: '#ffffff', footer: '#080808', body: '#ffffff', card: '#ffffff', text: '#211f20', metal: '#d4af37' };
 const otherCountry = '__other_country__';
+const makeShippingMethod = (name = 'Standard delivery', fee = 0, deliveryEstimate = '') => ({ id: globalThis.crypto?.randomUUID?.() || `method-${Date.now()}-${Math.random().toString(16).slice(2)}`, name, fee, deliveryEstimate });
+const normalizeShippingZone = (zone) => ({
+  ...zone,
+  methods: Array.isArray(zone.methods) && zone.methods.length
+    ? zone.methods
+    : [makeShippingMethod('Standard delivery', Number(zone.fee) || 0, zone.deliveryEstimate || '')],
+});
 const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
 const nonCountryRegions = new Set(['EU', 'EZ', 'UN', 'QO', 'XA', 'XB']);
 const countryOptions = Array.from({ length: 26 * 26 }, (_, index) => String.fromCharCode(65 + Math.floor(index / 26), 65 + index % 26))
@@ -55,7 +63,7 @@ export default function Admin() {
   const [postFile, setPostFile] = useState(null);
   const [editPost, setEditPost] = useState(null);
   const [busyAction, setBusyAction] = useState('');
-  const [shippingZones, setShippingZones] = useState([{ name: 'United Kingdom', countries: ['GB'], fee: delivery, deliveryEstimate: '', changeOfMindReturnCost: '' }]);
+  const [shippingZones, setShippingZones] = useState([{ name: 'United Kingdom', countries: ['GB'], fee: delivery, deliveryEstimate: '', changeOfMindReturnCost: '', methods: [makeShippingMethod('Standard delivery', delivery)] }]);
   const [siteSettings, setSiteSettings] = useState({ maintenance: false, blockSignIn: false, blockSignUp: false, blockCheckout: false, title: 'We’ll be back soon', message: 'We’re making a few improvements. Please check back shortly.', launchDate: '', banner: '', font: 'manrope', theme: 'classic', colors: {} });
   const [bannerFile, setBannerFile] = useState(null);
   const [zoneDraft, setZoneDraft] = useState(null);
@@ -86,7 +94,7 @@ export default function Admin() {
   useEffect(() => {
     if (!token) return;
     fetch(`${API}/api/settings`).then((response) => response.ok ? response.json() : null).then((data) => {
-      if (data?.shippingZones?.length) setShippingZones(data.shippingZones);
+      if (data?.shippingZones?.length) setShippingZones(data.shippingZones.map(normalizeShippingZone));
       if (data?.site) setSiteSettings((current) => ({ ...current, ...data.site, colors: { ...current.colors, ...(data.site.colors || {}) } }));
     }).catch(() => {});
     fetch(`${API}/api/blog/admin`, { headers: { Authorization: `Bearer ${token}` } })
@@ -210,7 +218,7 @@ export default function Admin() {
       if (!response.ok) throw new Error(data.message || 'Could not save shipping settings');
       setDelivery(data.deliveryFee);
       localStorage.setItem('des-delivery', String(data.deliveryFee));
-      setShippingZones(data.shippingZones);
+      setShippingZones(data.shippingZones.map(normalizeShippingZone));
       notify('Shipping settings saved');
       scrollToPageTop();
     } catch (err) {
@@ -402,7 +410,7 @@ export default function Admin() {
             <header><label className="admin-order-select"><input type="checkbox" checked={selectedOrderIds.includes(order._id)} onChange={(event) => setSelectedOrderIds((current) => event.target.checked ? [...current, order._id] : current.filter((id) => id !== order._id))} /><span>Select</span></label><div>{isTestOrder && <span className="admin-order-test-label">STRIPE TEST ORDER</span>}<h2>Order {order.stripeSessionId?.slice(-10).toUpperCase() || order._id}</h2><time>{new Date(order.createdAt).toLocaleString()}</time></div><strong className={`admin-order-status status-${order.status}`}>{order.status}</strong></header>
             <div className="admin-order-columns">
               <section><h3>Customer</h3><p>{order.customerName || 'Name not provided'}</p><p>{order.customerEmail || 'Email not provided'}</p><p>{order.customerPhone || 'Phone not provided'}</p></section>
-              <section><h3>Delivery address</h3><p>{address || 'No delivery address recorded'}</p></section>
+              <section><h3>Delivery</h3><p>{address || 'No delivery address recorded'}</p><p><strong>Method:</strong> {order.deliveryMethodName || 'Not recorded (older order)'}</p>{order.deliveryEstimate && <p><strong>Estimate:</strong> {order.deliveryEstimate}</p>}<p><strong>Delivery charge:</strong> {money(Number(order.deliveryFee) || 0)}</p></section>
               <section><h3>Items</h3>{items.length ? <ul>{items.map((item, index) => <li key={`${item.name || item.id}-${index}`}>{item.name || item.description || item.id || 'Item'} × {item.quantity || item.qty || 1}{item.amount != null ? ` · ${money(item.amount)}` : ''}</li>)}</ul> : <p>Items recorded in the payment metadata.</p>}<b>Total: {money(order.amount)}</b></section>
             </div>
             <div className="admin-order-communication">
@@ -421,23 +429,29 @@ export default function Admin() {
       {isShipping && <>
       <section id="shipping-settings" className="delivery-control">
         <h2>Shipping fees and destinations</h2>
-        <p>Set the destinations, delivery fee, delivery estimate, and change-of-mind return-cost information for each group. These details appear in the customer policies and checkout.</p>
+        <p>Create destination zones, then add one or more named delivery methods to each zone. Customers see and choose the methods available for their destination. Return-cost information is disclosed separately.</p>
         {shippingZones.length > 0 ? <div className="shipping-zone-list">{shippingZones.map((zone, index) => <article className="shipping-zone-card" key={`${zone.name}-${index}`}>
-          <div><h3>{zone.name}</h3><p>{zone.countries.map((code) => countryOptions.find((country) => country.code === code)?.name || code).join(', ') || 'No countries selected'}</p><p><strong>Delivery:</strong> {zone.deliveryEstimate || 'No estimate entered (30-day limit applies)'}</p><p><strong>Change-of-mind return costs:</strong> {zone.changeOfMindReturnCost || 'No cost details entered'}</p></div>
-          <strong>{money(Number(zone.fee) || 0)}</strong>
-          {!zoneDraft && <div className="shipping-zone-actions"><button type="button" onClick={() => { setZoneDraft({ ...zone, countries: [...zone.countries] }); setEditingZoneIndex(index); setCountrySelection(''); }}>Edit</button><button type="button" onClick={() => setShippingZones((zones) => zones.filter((_, i) => i !== index))}>Remove</button></div>}
+          <div><h3>{zone.name}</h3><p>{zone.countries.map((code) => countryOptions.find((country) => country.code === code)?.name || code).join(', ') || 'No countries selected'}</p><p><strong>Delivery methods:</strong></p><ul>{normalizeShippingZone(zone).methods.map((method) => <li key={method.id}>{method.name}: {money(Number(method.fee) || 0)}{method.deliveryEstimate ? ` · ${method.deliveryEstimate}` : ' · No estimate entered'}</li>)}</ul><p><strong>Change-of-mind return costs:</strong> {zone.changeOfMindReturnCost || 'No cost details entered'}</p></div>
+          <strong>{normalizeShippingZone(zone).methods.length} {normalizeShippingZone(zone).methods.length === 1 ? 'method' : 'methods'}</strong>
+          {!zoneDraft && <div className="shipping-zone-actions"><button type="button" onClick={() => { setZoneDraft({ ...normalizeShippingZone(zone), countries: [...zone.countries] }); setEditingZoneIndex(index); setCountrySelection(''); }}>Edit</button><button type="button" onClick={() => setShippingZones((zones) => zones.filter((_, i) => i !== index))}>Remove</button></div>}
         </article>)}</div> : <p className="shipping-empty">No shipping zones yet. Add a zone to make delivery available.</p>}
-        {!zoneDraft && <button type="button" onClick={() => { setZoneDraft({ name: '', countries: [], fee: 0, deliveryEstimate: '', changeOfMindReturnCost: '' }); setEditingZoneIndex(-1); setCountrySelection(''); }}>ADD SHIPPING ZONE</button>}
+        {!zoneDraft && <button type="button" onClick={() => { const method = makeShippingMethod(); setZoneDraft({ name: '', countries: [], fee: 0, deliveryEstimate: '', changeOfMindReturnCost: '', methods: [method] }); setEditingZoneIndex(-1); setCountrySelection(''); }}>ADD SHIPPING ZONE</button>}
         {zoneDraft && <div className="shipping-zone-editor">
           <h3>{editingZoneIndex === -1 ? 'Add shipping zone' : `Edit ${zoneDraft.name || 'shipping zone'}`}</h3>
           <label>Zone name<input value={zoneDraft.name} onChange={(event) => setZoneDraft((zone) => ({ ...zone, name: event.target.value }))} placeholder="For example, West Africa" /></label>
           <label>Add destinations<CountryPicker countries={countryOptions.filter(({ code }) => !zoneDraft.countries.includes(code) && !shippingZones.some((zone, index) => index !== editingZoneIndex && zone.countries.includes(code)))} onSelect={(code) => setZoneDraft((zone) => ({ ...zone, countries: [...zone.countries, code] }))} onOther={() => setCountrySelection(otherCountry)} /></label>
           {countrySelection === otherCountry && <div className="shipping-other-country"><label>Specify country<input value={otherCountryName} onChange={(event) => setOtherCountryName(event.target.value)} placeholder="Enter a country name" /></label><button type="button" disabled={!specifiedCountry || zoneDraft.countries.includes(specifiedCountry.code) || shippingZones.some((zone, index) => index !== editingZoneIndex && zone.countries.includes(specifiedCountry?.code))} onClick={() => { setZoneDraft((zone) => ({ ...zone, countries: [...zone.countries, specifiedCountry.code] })); setOtherCountryName(''); setCountrySelection(''); }}>ADD COUNTRY</button><small>{otherCountryName && !specifiedCountry ? 'Country not found. Search and select it above.' : 'Enter a country name, then add it to this zone.'}</small></div>}
           <div className="shipping-country-tags">{zoneDraft.countries.map((code) => <span key={code}>{countryOptions.find((country) => country.code === code)?.name || code}<button type="button" aria-label={`Remove ${code}`} onClick={() => setZoneDraft((zone) => ({ ...zone, countries: zone.countries.filter((country) => country !== code) }))}>×</button></span>)}</div>
-          <label>Shipping fee (£)<input type="number" min="0" step="0.01" value={zoneDraft.fee} onChange={(event) => setZoneDraft((zone) => ({ ...zone, fee: event.target.value }))} /></label>
-          <label>Delivery estimate<textarea rows="2" maxLength="160" value={zoneDraft.deliveryEstimate || ''} onChange={(event) => setZoneDraft((zone) => ({ ...zone, deliveryEstimate: event.target.value }))} placeholder="For example, 2–5 business days after dispatch" /><small>Use the realistic estimate for this destination group. The site also states the 30-day legal limit.</small></label>
+          <div className="shipping-method-editor-list"><h4>Delivery methods</h4>{zoneDraft.methods.map((method, methodIndex) => <fieldset className="shipping-method-editor" key={method.id}>
+            <legend>{method.name || `Delivery method ${methodIndex + 1}`}</legend>
+            <label>Method name<input maxLength="100" value={method.name} onChange={(event) => setZoneDraft((zone) => ({ ...zone, methods: zone.methods.map((item, index) => index === methodIndex ? { ...item, name: event.target.value } : item) }))} placeholder="For example, Standard delivery" /></label>
+            <label>Customer delivery charge (£)<input type="number" min="0" step="0.01" required value={method.fee} onChange={(event) => setZoneDraft((zone) => ({ ...zone, methods: zone.methods.map((item, index) => index === methodIndex ? { ...item, fee: event.target.value } : item) }))} /></label>
+            <label>Delivery estimate<textarea rows="2" maxLength="160" value={method.deliveryEstimate || ''} onChange={(event) => setZoneDraft((zone) => ({ ...zone, methods: zone.methods.map((item, index) => index === methodIndex ? { ...item, deliveryEstimate: event.target.value } : item) }))} placeholder="For example, 2–5 business days after dispatch" /><small>Use a realistic estimate. The site also states the 30-day legal limit.</small></label>
+            <button type="button" disabled={zoneDraft.methods.length <= 1} onClick={() => setZoneDraft((zone) => ({ ...zone, methods: zone.methods.filter((_item, index) => index !== methodIndex) }))}>REMOVE METHOD</button>
+          </fieldset>)}</div>
+          <button type="button" onClick={() => setZoneDraft((zone) => ({ ...zone, methods: [...zone.methods, makeShippingMethod(`Delivery option ${zone.methods.length + 1}`)] }))}>ADD DELIVERY METHOD</button>
           <label>Change-of-mind return cost information<textarea rows="3" maxLength="400" value={zoneDraft.changeOfMindReturnCost || ''} onChange={(event) => setZoneDraft((zone) => ({ ...zone, changeOfMindReturnCost: event.target.value }))} placeholder="Enter the direct return cost or how the customer can calculate it. Include an estimate for items that cannot normally be returned by post." /><small>This text is shown before customers pay.</small></label>
-          <div className="shipping-zone-actions"><button type="button" disabled={!zoneDraft.name.trim() || !zoneDraft.countries.length || !Number.isFinite(Number(zoneDraft.fee)) || Number(zoneDraft.fee) < 0} onClick={() => { setShippingZones((zones) => editingZoneIndex === -1 ? [...zones, { ...zoneDraft, fee: Number(zoneDraft.fee) }] : zones.map((zone, index) => index === editingZoneIndex ? { ...zoneDraft, fee: Number(zoneDraft.fee) } : zone)); setZoneDraft(null); setEditingZoneIndex(null); setCountrySelection(''); }}>SAVE ZONE</button><button type="button" onClick={() => { setZoneDraft(null); setEditingZoneIndex(null); setCountrySelection(''); }}>CANCEL</button></div>
+          <div className="shipping-zone-actions"><button type="button" disabled={!zoneDraft.name.trim() || !zoneDraft.countries.length || !zoneDraft.methods.length || zoneDraft.methods.some((method) => !method.id || !method.name.trim() || method.fee === '' || !Number.isFinite(Number(method.fee)) || Number(method.fee) < 0)} onClick={() => { const methods = zoneDraft.methods.map((method) => ({ ...method, fee: Number(method.fee) })); const nextZone = { ...zoneDraft, methods, fee: methods[0].fee, deliveryEstimate: methods[0].deliveryEstimate || '' }; setShippingZones((zones) => editingZoneIndex === -1 ? [...zones, nextZone] : zones.map((zone, index) => index === editingZoneIndex ? nextZone : zone)); setZoneDraft(null); setEditingZoneIndex(null); setCountrySelection(''); }}>SAVE ZONE</button><button type="button" onClick={() => { setZoneDraft(null); setEditingZoneIndex(null); setCountrySelection(''); }}>CANCEL</button></div>
         </div>}
         <button className="shop-now" type="button" disabled={busyAction === 'delivery' || shippingZones.length === 0 || Boolean(zoneDraft)} onClick={saveDelivery}>{busyAction === 'delivery' ? <><LoaderCircle className="button-spinner" size={17} /> SAVING...</> : 'SAVE SHIPPING SETTINGS'}</button>
       </section>

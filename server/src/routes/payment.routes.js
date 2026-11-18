@@ -3,6 +3,7 @@ const express = require("express");
 const stripe = require("../services/stripe");
 const Product = require("../models/Product");
 const StoreSettings = require("../models/StoreSettings");
+const { shippingMethodsForZone } = require("../utils/shippingMethods");
 
 const router = express.Router();
 
@@ -53,6 +54,8 @@ router.get("/session-status/:sessionId", async (req, res) => {
         postalCode: address.postal_code || "",
         country: address.country || "",
       },
+      deliveryMethod: session.metadata?.deliveryMethodName || "",
+      deliveryEstimate: session.metadata?.deliveryEstimate || "",
       items,
     });
   } catch (error) {
@@ -65,7 +68,7 @@ router.post("/create-cart-session", async (req, res) => {
   try {
     const siteStatus = await StoreSettings.findOne({ key: "store" }).select("site");
     if (siteStatus?.site?.maintenance || siteStatus?.site?.blockCheckout) return res.status(503).json({ message: "Checkout is temporarily unavailable. Please check back shortly." });
-    const { items, customer, uiMode, shippingCountry, whatsappOrderCopy } = req.body;
+    const { items, customer, uiMode, shippingCountry, shippingMethodId, whatsappOrderCopy } = req.body;
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: "Your cart is empty" });
     }
@@ -104,12 +107,15 @@ router.post("/create-cart-session", async (req, res) => {
     if (!shippingZone) {
       return res.status(400).json({ message: "We do not currently ship to that country. Choose an available destination." });
     }
-    const deliveryFee = Number(shippingZone.fee || 0);
+    const availableMethods = shippingMethodsForZone(shippingZone);
+    const shippingMethod = availableMethods.find((method) => method.id === String(shippingMethodId || availableMethods[0].id));
+    if (!shippingMethod) return res.status(400).json({ message: "Choose a valid delivery option for your destination." });
+    const deliveryFee = Number(shippingMethod.fee || 0);
     if (deliveryFee > 0) {
       line_items.push({
         price_data: {
           currency: "gbp",
-          product_data: { name: "Delivery" },
+          product_data: { name: `Delivery: ${shippingMethod.name}` },
           unit_amount: Math.round(deliveryFee * 100),
         },
         quantity: 1,
@@ -121,6 +127,10 @@ router.post("/create-cart-session", async (req, res) => {
       metadata: {
         items: JSON.stringify(normalized),
         whatsappOrderCopy: whatsappOrderCopy === true ? "true" : "false",
+        deliveryMethodId: String(shippingMethod.id).slice(0, 100),
+        deliveryMethodName: String(shippingMethod.name).slice(0, 100),
+        deliveryFee: deliveryFee.toFixed(2),
+        deliveryEstimate: String(shippingMethod.deliveryEstimate || "").slice(0, 160),
         ...(whatsappOrderCopy === true ? { whatsappOrderCopyAt: new Date().toISOString() } : {}),
       },
       line_items,
@@ -149,7 +159,7 @@ router.post("/create-checkout-session", async (req, res) => {
   try {
     const siteStatus = await StoreSettings.findOne({ key: "store" }).select("site");
     if (siteStatus?.site?.maintenance || siteStatus?.site?.blockCheckout) return res.status(503).json({ message: "Checkout is temporarily unavailable. Please check back shortly." });
-    const { productId, shippingCountry } = req.body;
+    const { productId, shippingCountry, shippingMethodId } = req.body;
 
     const product = await Product.findById(productId);
 
@@ -172,10 +182,13 @@ router.post("/create-checkout-session", async (req, res) => {
       },
       quantity: 1,
     }];
-    const deliveryFee = Number(shippingZone.fee || 0);
+    const availableMethods = shippingMethodsForZone(shippingZone);
+    const shippingMethod = availableMethods.find((method) => method.id === String(shippingMethodId || availableMethods[0].id));
+    if (!shippingMethod) return res.status(400).json({ message: "Choose a valid delivery option for your destination." });
+    const deliveryFee = Number(shippingMethod.fee || 0);
     if (deliveryFee > 0) {
       lineItems.push({
-        price_data: { currency: "gbp", product_data: { name: "Delivery" }, unit_amount: Math.round(deliveryFee * 100) },
+        price_data: { currency: "gbp", product_data: { name: `Delivery: ${shippingMethod.name}` }, unit_amount: Math.round(deliveryFee * 100) },
         quantity: 1,
       });
     }
@@ -185,6 +198,10 @@ router.post("/create-checkout-session", async (req, res) => {
 
       metadata: {
         productId: product._id.toString(),
+        deliveryMethodId: String(shippingMethod.id).slice(0, 100),
+        deliveryMethodName: String(shippingMethod.name).slice(0, 100),
+        deliveryFee: deliveryFee.toFixed(2),
+        deliveryEstimate: String(shippingMethod.deliveryEstimate || "").slice(0, 160),
       },
 
       line_items: lineItems,

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import StaticContentPage from '../components/layout/StaticContentPage';
 import { API } from '../data/catalog';
+import { money } from '../utils/products';
+import '../styles/shippingMethods.css';
 
 const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
 
@@ -16,8 +18,8 @@ export default function Shipping() {
   return (
     <StaticContentPage slug="shipping" afterContent={zones.length > 0 ? (
       <section className="cms-live-shipping">
-        <h2>Delivery estimates by destination</h2>
-        <ul>{zones.map((zone) => <li key={zone.name}><strong>{zone.name} ({zone.countries.map((code) => regionNames.of(code) || code).join(', ')}):</strong> {zone.deliveryEstimate || 'Without undue delay and within 30 days of the contract.'}</li>)}</ul>
+        <h2>Delivery options by destination</h2>
+        {zones.map((zone) => <section key={zone.name}><h3>{zone.name} ({zone.countries.map((code) => regionNames.of(code) || code).join(', ')})</h3><ul>{(Array.isArray(zone.methods) && zone.methods.length ? zone.methods : [{ id: 'standard', name: 'Standard delivery', fee: zone.fee, deliveryEstimate: zone.deliveryEstimate }]).map((method) => <li key={method.id}><strong>{method.name}:</strong> {money(Number(method.fee) || 0)} · {method.deliveryEstimate || 'Without undue delay and within 30 days of the contract.'}</li>)}</ul></section>)}
       </section>
     ) : null}>
       <p className="kicker">CUSTOMER INFORMATION</p>
@@ -31,7 +33,7 @@ export default function Shipping() {
       <p>Delivery estimates by destination are shown below. We will deliver without undue delay and within 30 days of the contract being made unless we agree a different delivery period with you before the contract is made. The delivery countries and any restrictions that apply will be shown before you order.</p>
 
       <h2>Shipping charges</h2>
-      <p>We will show the delivery charge for your selected destination before you place your order.</p>
+      <p>Before you place your order, we will show the available delivery methods for your destination, the charge for each method, and its delivery estimate.</p>
 
       <h2>Order tracking</h2>
       <p>Where tracking is available, customers will receive tracking information once their orders have been dispatched.</p>

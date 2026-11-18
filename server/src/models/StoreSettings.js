@@ -1,5 +1,12 @@
 const mongoose = require("mongoose");
 
+const shippingMethodSchema = new mongoose.Schema({
+  id: { type: String, trim: true, maxlength: 100 },
+  name: { type: String, trim: true, maxlength: 100 },
+  fee: { type: Number, min: 0 },
+  deliveryEstimate: { type: String, trim: true, maxlength: 160, default: "" },
+}, { _id: false });
+
 module.exports = mongoose.model("StoreSettings", new mongoose.Schema({
   key: { type: String, unique: true, required: true },
   deliveryFee: { type: Number, min: 0, default: 0 },
@@ -9,6 +16,7 @@ module.exports = mongoose.model("StoreSettings", new mongoose.Schema({
     fee: { type: Number, min: 0 },
     deliveryEstimate: { type: String, trim: true, maxlength: 160, default: "" },
     changeOfMindReturnCost: { type: String, trim: true, maxlength: 400, default: "" },
+    methods: [shippingMethodSchema],
   }],
   site: {
     maintenance: { type: Boolean, default: false },

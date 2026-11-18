@@ -6,13 +6,18 @@ import PasswordInput from '../components/PasswordInput';
 import { API } from '../data/catalog';
 import { useStore } from '../context/StoreContext';
 import { money } from '../utils/products';
+import '../styles/shippingMethods.css';
 
 const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+const methodsForZone = (zone) => Array.isArray(zone?.methods) && zone.methods.length
+  ? zone.methods
+  : [{ id: 'standard', name: 'Standard delivery', fee: Number(zone?.fee) || 0, deliveryEstimate: zone?.deliveryEstimate || '' }];
 
 export default function Checkout() {
   const { cart } = useStore();
   const [shippingZones, setShippingZones] = useState([]);
   const [shippingCountry, setShippingCountry] = useState('');
+  const [shippingMethodId, setShippingMethodId] = useState('');
   const [customer, setCustomer] = useState({ name: '', email: '' });
   const [whatsappOrderCopy, setWhatsappOrderCopy] = useState(false);
   const [account, setAccount] = useState(null);
@@ -30,7 +35,15 @@ export default function Checkout() {
   const missingPrice = cart.some((row) => !(Number(row.product?.price) > 0));
   const destinations = useMemo(() => shippingZones.flatMap((zone) => zone.countries.map((code) => ({ code, zone }))), [shippingZones]);
   const selectedDestination = destinations.find(({ code }) => code === shippingCountry);
-  const delivery = Number(selectedDestination?.zone.fee || 0);
+  const availableShippingMethods = useMemo(() => methodsForZone(selectedDestination?.zone), [selectedDestination]);
+  const selectedShippingMethod = availableShippingMethods.find((method) => method.id === shippingMethodId) || availableShippingMethods[0];
+  const delivery = Number(selectedShippingMethod?.fee || 0);
+
+  useEffect(() => {
+    if (!availableShippingMethods.some((method) => method.id === shippingMethodId)) {
+      setShippingMethodId(availableShippingMethods[0]?.id || '');
+    }
+  }, [availableShippingMethods, shippingMethodId]);
 
   useEffect(() => {
     let active = true;
@@ -127,6 +140,7 @@ export default function Checkout() {
           customer,
           whatsappOrderCopy,
           shippingCountry,
+          shippingMethodId: selectedShippingMethod?.id,
           uiMode: stripePublishableKey ? 'embedded' : 'hosted',
         }),
       });
@@ -182,6 +196,14 @@ export default function Checkout() {
                 <option value="" disabled>Select a delivery country</option>
                 {destinations.map(({ code }) => <option key={code} value={code}>{new Intl.DisplayNames(['en'], { type: 'region' }).of(code)}</option>)}
               </select></label>
+              {selectedDestination && <fieldset className="checkout-shipping-methods">
+                <legend>Choose a delivery option</legend>
+                {availableShippingMethods.map((method) => <label className="checkout-shipping-method" key={method.id}>
+                  <input type="radio" name="shipping-method" value={method.id} checked={(selectedShippingMethod?.id || '') === method.id} onChange={() => setShippingMethodId(method.id)} />
+                  <span><strong>{method.name}</strong><small>{method.deliveryEstimate || 'Without undue delay and within 30 days of the contract.'}</small></span>
+                  <b>{money(Number(method.fee) || 0)}</b>
+                </label>)}
+              </fieldset>}
               {shippingLoading && <p className="checkout-country-status">Loading delivery countries…</p>}
               {shippingError && <p className="checkout-inline-error" role="alert">{shippingError}</p>}
               {error && <p className="checkout-inline-error" role="alert">{error}</p>}
@@ -189,7 +211,7 @@ export default function Checkout() {
                 <input type="checkbox" checked={whatsappOrderCopy} onChange={(event) => setWhatsappOrderCopy(event.target.checked)} />
                 <span>Send me a copy of my order confirmation from Des Collection LTD on WhatsApp. This is optional.</span>
               </label>
-              <button className="shop-now checkout-start" type="button" onClick={startPayment} disabled={busy || missingPrice || shippingLoading || Boolean(shippingError) || !selectedDestination}>
+              <button className="shop-now checkout-start" type="button" onClick={startPayment} disabled={busy || missingPrice || shippingLoading || Boolean(shippingError) || !selectedDestination || !selectedShippingMethod}>
                 {busy ? <><LoaderCircle className="button-spinner" size={18} /> PREPARING SECURE CHECKOUT...</> : <><LockKeyhole size={17} /> CONTINUE TO PAYMENT</>}
               </button>
             </>
@@ -207,8 +229,8 @@ export default function Checkout() {
         <aside className="checkout-summary">
           <h2>Your order</h2>
           {cart.map((row) => <div className="checkout-item" key={row.id}><span>{row.product?.name} × {row.qty}</span><b>{Number(row.product?.price) > 0 ? money(row.product.price * row.qty) : 'Price TBC'}</b></div>)}
-          <div className="checkout-totals"><span>Subtotal</span><b>{money(subtotal)}</b><span>Delivery</span><b>{money(delivery)}</b><strong>Total</strong><strong>{money(subtotal + delivery)}</strong></div>
-          <p className="checkout-country-status"><strong>Delivery estimate:</strong> {selectedDestination?.zone.deliveryEstimate || 'Without undue delay and within 30 days of the contract, unless we agree a different period.'}</p>
+          <div className="checkout-totals"><span>Subtotal</span><b>{money(subtotal)}</b><span>{selectedShippingMethod?.name || 'Delivery'}</span><b>{money(delivery)}</b><strong>Total</strong><strong>{money(subtotal + delivery)}</strong></div>
+          <p className="checkout-country-status"><strong>Delivery estimate:</strong> {selectedShippingMethod?.deliveryEstimate || 'Without undue delay and within 30 days of the contract, unless we agree a different period.'}</p>
           <p className="checkout-country-status"><strong>Change-of-mind return postage:</strong> {selectedDestination?.zone.changeOfMindReturnCost || 'Contact us before ordering to confirm any applicable direct return cost. We will not charge a return cost that was not disclosed before purchase.'}</p>
           <Link to="/cart">EDIT BASKET</Link>
         </aside>
